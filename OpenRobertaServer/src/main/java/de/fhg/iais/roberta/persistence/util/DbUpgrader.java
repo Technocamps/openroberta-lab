@@ -27,8 +27,8 @@ public class DbUpgrader {
      */
     public static void checkForUpgrade(SessionFactoryWrapper sessionFactoryWrapper) {
         try {
-            if ( isAnEmptyDatabaseBeingCreated(sessionFactoryWrapper) ) {
-                LOG.info("a new, empty db is being created. No upgrades, of course");
+            if ( DbUpgrader.isAnEmptyDatabaseBeingCreated(sessionFactoryWrapper) ) {
+                DbUpgrader.LOG.info("a new, empty db is being created. No upgrades, of course");
                 return;
             }
 
@@ -45,13 +45,18 @@ public class DbUpgrader {
             /*
              * 4.x.x ... ... ... copy the implementation from above. Start with a clone of the upgrader class DbUpgrader3_1_0
              */
+            DbUpgraderUserGroups dbUpgraderUserGroups = new DbUpgraderUserGroups(sessionFactoryWrapper);
+            boolean upgradeDoneUserGroups = dbUpgraderUserGroups.isUpgradeDone();
+            if ( !upgradeDoneUserGroups ) {
+                dbUpgraderUserGroups.run();
+            }
 
-            boolean atLeastOneUpgrade = !upgradeDone3_1_0; // OR of !upgradeDone*
+            boolean atLeastOneUpgrade = !upgradeDone3_1_0 || !upgradeDoneUserGroups; // OR of !upgradeDone*
             if ( !atLeastOneUpgrade ) {
-                LOG.info("no db upgrades needed");
+                DbUpgrader.LOG.info("no db upgrades needed");
             }
         } catch ( Exception e ) {
-            LOG.error("Abort: database upgrade fails. System exit 2", e);
+            DbUpgrader.LOG.error("Abort: database upgrade fails. System exit 2", e);
             System.exit(2);
         }
     }
