@@ -50,6 +50,7 @@ public final class Project {
     private RobotCommunicator robotCommunicator;
     private IRobotFactory robotFactory;
     private boolean withWrapping = true;
+    private boolean isDefaultConfiguration = false;
 
     private ProgramAst<Void> program = null;
     private ConfigurationAst configuration = null;
@@ -117,6 +118,10 @@ public final class Project {
         return this.withWrapping;
     }
 
+    public boolean isDefaultConfiguration() {
+        return this.isDefaultConfiguration;
+    }
+
     /**
      * @return the programTransformer
      */
@@ -129,6 +134,10 @@ public final class Project {
      */
     public ConfigurationAst getConfigurationAst() {
         return this.configuration;
+    }
+
+    public void addConfigurationAst(ConfigurationAst configuration) {
+        this.configuration = configuration;
     }
 
     public <T extends IProjectBean> T getWorkerResult(Class<T> beanClass) {
@@ -404,7 +413,15 @@ public final class Project {
                 try {
                     BlockSet blockSet = JaxbHelper.xml2BlockSet(this.configurationXml);
                     if ( this.project.robotFactory.getConfigurationType().equals("new") ) {
-                        this.project.configuration = Jaxb2ConfigurationAst.blocks2NewConfig(blockSet, this.project.robotFactory.getBlocklyDropdownFactory());
+                        try { // TODO without try catch
+                            if ( this.configurationXml.contains(this.project.robotFactory.getTopBlockOfOldConfiguration()) ) {
+                                this.project.configuration = loadDefaultConfiguration();
+                            } else {
+                                this.project.configuration = Jaxb2ConfigurationAst.blocks2NewConfig(blockSet, this.project.robotFactory.getBlocklyDropdownFactory());
+                            }
+                        } catch ( DbcException e ) {
+                            this.project.configuration = Jaxb2ConfigurationAst.blocks2NewConfig(blockSet, this.project.robotFactory.getBlocklyDropdownFactory());
+                        }
                     } else {
                         this.project.configuration =
                             Jaxb2ConfigurationAst
@@ -421,6 +438,11 @@ public final class Project {
                 }
             }
         }
-    }
 
+        private ConfigurationAst loadDefaultConfiguration() throws Exception {
+            this.project.isDefaultConfiguration = true;
+            BlockSet blockSet = JaxbHelper.xml2BlockSet(this.project.robotFactory.getConfigurationDefault());
+            return Jaxb2ConfigurationAst.blocks2NewConfig(blockSet, this.project.robotFactory.getBlocklyDropdownFactory());
+        }
+    }
 }

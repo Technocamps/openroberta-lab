@@ -171,7 +171,7 @@ public final class Jaxb2ConfigurationAst {
             return new ConfigurationComponent(
                 componentType,
                 true,
-                null, // TODO take a look at internal port name!
+                userDefinedName,
                 userDefinedName,
                 map,
                 extractBlockProperties(firstBlock),

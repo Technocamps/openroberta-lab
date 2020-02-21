@@ -61,7 +61,7 @@ public class ProjectWorkflowRestController {
                     .setRobot(dataPart.optString("robot", httpSessionState.getRobotName()))
                     .setFactory(httpSessionState.getRobotFactory())
                     .build();
-            ProjectService.executeWorkflow("showsource", httpSessionState.getRobotFactory(), project);
+            ProjectService.executeWorkflow("showsource", project);
             // To make this compatible with old frontend we will have to use the old names...
             response.put("cmd", "showSourceP");
             response.put("sourceCode", project.getSourceCode());
@@ -106,7 +106,7 @@ public class ProjectWorkflowRestController {
                     .setRobot(dataPart.optString("robot", httpSessionState.getRobotName()))
                     .setFactory(httpSessionState.getRobotFactory())
                     .build();
-            ProjectService.executeWorkflow("getsimulationcode", httpSessionState.getRobotFactory(), project);
+            ProjectService.executeWorkflow("getsimulationcode", project);
             // To make this compatible with old frontend we will have to use the old names...
             response.put("cmd", "runPSim");
             response.put("javaScriptProgram", project.getSourceCode());
@@ -153,7 +153,7 @@ public class ProjectWorkflowRestController {
                     .setFactory(httpSessionState.getRobotFactory())
                     .setRobotCommunicator(this.brickCommunicator)
                     .build();
-            ProjectService.executeWorkflow("run", httpSessionState.getRobotFactory(), project);
+            ProjectService.executeWorkflow("run", project);
             response.put("cmd", "runPBack");
             response.put("progXML", project.getAnnotatedProgramAsXml());
             response.put("errorCounter", project.getErrorCounter());
@@ -206,7 +206,7 @@ public class ProjectWorkflowRestController {
                     .setFactory(httpSessionState.getRobotFactory())
                     .setRobotCommunicator(this.brickCommunicator)
                     .build();
-            ProjectService.executeWorkflow("runnative", httpSessionState.getRobotFactory(), project);
+            ProjectService.executeWorkflow("runnative", project);
             response.put("cmd", "runNative");
             response.put("errorCounter", project.getErrorCounter());
             response.put("parameters", project.getResultParams());
@@ -245,7 +245,7 @@ public class ProjectWorkflowRestController {
                     .setRobot(dataPart.optString("robot", httpSessionState.getRobotName()))
                     .setFactory(httpSessionState.getRobotFactory())
                     .build();
-            ProjectService.executeWorkflow("compile", httpSessionState.getRobotFactory(), project);
+            ProjectService.executeWorkflow("compile", project);
             response.put("cmd", "compileP");
             response.put("progXML", project.getAnnotatedProgramAsXml());
             response.put("errorCounter", project.getErrorCounter());
@@ -293,7 +293,7 @@ public class ProjectWorkflowRestController {
                     .setFactory(httpSessionState.getRobotFactory())
                     .setRobotCommunicator(this.brickCommunicator)
                     .build();
-            ProjectService.executeWorkflow("compilenative", httpSessionState.getRobotFactory(), project);
+            ProjectService.executeWorkflow("compilenative", project);
             response.put("cmd", "runNative");
             response.put("errorCounter", project.getErrorCounter());
             response.put("parameters", project.getResultParams());
@@ -328,7 +328,7 @@ public class ProjectWorkflowRestController {
                     .setFactory(httpSessionState.getRobotFactory())
                     .setRobotCommunicator(this.brickCommunicator)
                     .build();
-            ProjectService.executeWorkflow("reset", httpSessionState.getRobotFactory(), project);
+            ProjectService.executeWorkflow("reset", project);
             response.put("cmd", "reset");
             response.put("programName", project.getProgramName());
             response.put("errorCounter", project.getErrorCounter());

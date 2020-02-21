@@ -96,4 +96,6 @@ public interface IRobotFactory {
      * @return unmodifiable string set of workflows
      */
     Set<String> getWorkflows();
+
+    boolean hasWorkflow(String workflow);
 }
