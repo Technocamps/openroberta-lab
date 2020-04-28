@@ -5,9 +5,9 @@ import org.slf4j.LoggerFactory;
 
 import de.fhg.iais.roberta.persistence.bo.AccessRight;
 import de.fhg.iais.roberta.persistence.bo.AccessRightHistory;
-import de.fhg.iais.roberta.persistence.bo.UserGroup;
 import de.fhg.iais.roberta.persistence.bo.Role;
 import de.fhg.iais.roberta.persistence.bo.User;
+import de.fhg.iais.roberta.persistence.bo.UserGroup;
 import de.fhg.iais.roberta.persistence.util.DbSession;
 import de.fhg.iais.roberta.util.Key;
 import de.fhg.iais.roberta.util.dbc.Assert;
@@ -68,10 +68,11 @@ public class GroupWorkflow {
         Assert.notNull(group);
         Assert.nonEmptyString(accountPrefix);
         Assert.isTrue(startNumber >= 0);
-        Assert.isTrue(numberOfAccounts >= 0 && (startNumber + numberOfAccounts) <= 99);
+        //TODO: Check for number of users in group, instead of checking for the number or accounts that shall be added.
+        Assert.isTrue(numberOfAccounts >= 0 && startNumber + numberOfAccounts <= 99);
         for ( int i = startNumber; i < startNumber + numberOfAccounts; i++ ) {
             if ( userDao.loadUser(group, accountPrefix + i) != null ) {
-                //TODO: Also check if the given user is part of the group. If not, its not the fault of the group admin fault and we need to simply skip it.
+                //TODO: Also check if the given user is part of the group. If not, its not the fault of the group admin and we need to simply skip it.
                 return Key.GROUP_USER_ALREADY_EXISTS;
             }
         }
@@ -79,7 +80,7 @@ public class GroupWorkflow {
             try {
                 userDao.persistUser(group, accountPrefix + i, accountPrefix + i, Role.STUDENT.toString());
             } catch ( Exception e ) {
-                LOG.error("Add account failed for " + accountPrefix + i + " of group " + groupName, e);
+                GroupWorkflow.LOG.error("Add account failed for " + accountPrefix + i + " of group " + groupName, e);
                 return Key.GROUP_ADD_ACCOUNT_PARTIAL;
             }
         }

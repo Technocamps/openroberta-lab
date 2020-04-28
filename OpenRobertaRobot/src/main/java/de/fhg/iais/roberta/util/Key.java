@@ -121,17 +121,28 @@ public enum Key {
     FIRMWARE_RESET_ERROR( false ),
     PROGRAM_ERROR_EXPRBLOCK_TYPECHECK( false ),
     PROGRAM_ERROR_EXPRBLOCK_PARSE( false ),
-    GROUP_TO_UPDATE_NOT_FOUND( false ),
-    GROUP_UPDATE_ERROR( false ),
-    GROUP_ALREADY_EXISTS( false ),
+    GROUP_ERROR_NAME_INVALID( false ),
+    GROUP_ERROR_MISSING_RIGHTS_TO_BE_GROUP_OWNER( false ),
+    GROUP_GET_ONE_SUCCESS( true ),
+    GROUP_GET_ONE_ERROR( false ),
+    GROUP_GET_ONE_ERROR_NOT_FOUND( false ),
+    GROUP_GET_ALL_SUCCESS( true ),
+    GROUP_GET_ALL_ERROR( false ),
     GROUP_CREATE_SUCCESS( true ),
+    GROUP_CREATE_ERROR( false ),
+    GROUP_CREATE_ERROR_GROUP_LIMIT_REACHED( false ),
+    GROUP_CREATE_ERROR_GROUP_ALREADY_EXISTS( false ),
+    GROUP_UPDATE_SUCCESS( true ),
+    GROUP_UPDATE_ERROR( false ),
+    GROUP_UPDATE_ERROR_NOT_FOUND( false ),
+    GROUP_UPDATE_ERROR_NOT_OWNER( false ),
     GROUP_RENAME_SUCCESS( true ),
+    GROUP_RENAME_ERROR( false ),
     GROUP_USER_ALREADY_EXISTS( false ),
     GROUP_ADD_ACCOUNT_PARTIAL( false ), // TODO validate
     GROUP_ADD_ACCOUNT_OK( true ),
     GROUP_DELETE_USER_OK( true ),
     ACCESS_RIGHT_UNCHANGED( true );
-
     /**
      * Creates a new Key and adds the needed ORA_ prefix for the blockly message.
      *

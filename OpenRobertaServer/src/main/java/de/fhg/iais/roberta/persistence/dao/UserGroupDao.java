@@ -45,7 +45,7 @@ public class UserGroupDao extends AbstractDao<UserGroup> {
         Assert.notNull(groupName);
         Assert.notNull(groupOwner);
 
-        UserGroup group = this.loadByName(groupName);
+        UserGroup group = this.load(groupName, groupOwner);
         if ( group == null ) {
             if ( timestamp == null ) {
                 group = new UserGroup(groupName, groupOwner);
@@ -56,7 +56,7 @@ public class UserGroupDao extends AbstractDao<UserGroup> {
             }
         } else {
             if ( timestamp == null ) {
-                return Pair.of(Key.GROUP_CREATE_ERROR_ALREADY_EXISTS, null);
+                return Pair.of(Key.GROUP_CREATE_ERROR_GROUP_ALREADY_EXISTS, null);
             } else {
                 if ( group.getOwner().getId() != groupOwner.getId() ) {
                     return Pair.of(Key.GROUP_UPDATE_ERROR_NOT_OWNER, null);
@@ -79,28 +79,9 @@ public class UserGroupDao extends AbstractDao<UserGroup> {
         Assert.notNull(groupName);
         Assert.notNull(groupOwner);
 
-        Query hql = this.session.createQuery("from UserGroup where name=:groupName and owner=:owner");
+        Query hql = this.session.createQuery("from UserGroup where name=:groupName and owner=:groupOwner");
         hql.setString("groupName", groupName);
-        hql.setEntity("owner", groupOwner);
-
-        @SuppressWarnings("unchecked")
-        List<UserGroup> il = hql.list();
-        Assert.isTrue(il.size() <= 1);
-
-        return il.size() == 0 ? null : il.get(0);
-    }
-
-    /**
-     * TODO: Change unique index in SQL statement to be on the groupName only
-     *
-     * @param groupName
-     * @return
-     */
-    public UserGroup loadByName(String groupName) {
-        Assert.notNull(groupName);
-
-        Query hql = this.session.createQuery("from UserGroup where name=:groupName");
-        hql.setString("groupName", groupName);
+        hql.setEntity("groupOwner", groupOwner);
 
         @SuppressWarnings("unchecked")
         List<UserGroup> il = hql.list();
@@ -110,7 +91,7 @@ public class UserGroupDao extends AbstractDao<UserGroup> {
     }
 
     public int delete(String groupName, User groupOwner) {
-        //Assert check on not null happens in this.load
+        //Assert checks on not null happens in the load method, so they are not required here
         UserGroup toBeDeleted = this.load(groupName, groupOwner);
 
         if ( toBeDeleted == null ) {
@@ -149,28 +130,8 @@ public class UserGroupDao extends AbstractDao<UserGroup> {
         return resultIterator.hasNext() ? resultIterator.next().intValue() : 0;
     }
 
-    /*
-     * TODO: Move to Processor
-     */
-    public boolean isValidGroupOwner(User owner) {
-        //TODO: Add check for public server
-        return owner != null && owner.getEmail() != null && owner.getGroup() == null && (owner.isActivated() || false);
-    }
-
-    /**
-     * TODO: Move to Processor
-     *
-     * @param groupName
-     * @return
-     */
-    public boolean isValidGroupName(String groupName) {
-        //UserName pattern: Pattern p = Pattern.compile("[^a-zA-Z0-9=+!?.,%#+&^@_\\- ]", Pattern.CASE_INSENSITIVE);
-        return groupName != null;
-    }
-
     /**
      * rename a group object that is owned by the User 'owner'. The group to be renamed must exist.
-     * TODO: Add renaming of all student accounts, as well.
      *
      * @param groupName the name of the group, never null
      * @param newGroupName the new name of the group, never null
@@ -186,10 +147,9 @@ public class UserGroupDao extends AbstractDao<UserGroup> {
         UserGroup group = this.load(groupName, groupOwner);
         Assert.notNull(group);
 
-        UserGroup newGroup = this.loadByName(newGroupName);
-        if ( newGroup != null ) {
-            return Pair.of(Key.GROUP_CREATE_ERROR_ALREADY_EXISTS, null);
-        }
+        UserGroup newGroup = this.load(newGroupName, groupOwner);
+        Assert.isNull(newGroup);
+
         group.rename(newGroupName);
         return Pair.of(Key.GROUP_RENAME_SUCCESS, group);
     }

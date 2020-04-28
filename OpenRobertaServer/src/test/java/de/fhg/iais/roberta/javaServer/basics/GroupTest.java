@@ -120,7 +120,7 @@ public class GroupTest {
                 Key resultKey = result.getFirst();
                 if ( resultKey == Key.GROUP_CREATE_SUCCESS ) {
                     break;
-                } else if ( resultKey == Key.GROUP_CREATE_ERROR_ALREADY_EXISTS ) {
+                } else if ( resultKey == Key.GROUP_CREATE_ERROR_GROUP_ALREADY_EXISTS ) {
                     // expected!
                 } else {
                     fail();

@@ -22,6 +22,7 @@ public class UserGroupProcessor extends AbstractProcessor {
 
     protected static final int OWNER_GROUP_LIMIT = 100;
     protected static final int GROUP_STUDENT_LIMIT = 100;
+
     private final boolean isPublicServer;
 
     public UserGroupProcessor(DbSession dbSession, HttpSessionState httpSessionState, boolean isPublicServer) {
@@ -50,29 +51,7 @@ public class UserGroupProcessor extends AbstractProcessor {
         UserGroup group = this.userGroupDao.load(groupName, groupOwner);
 
         if ( group == null ) {
-            this.setStatus(ProcessorStatus.FAILED, Key.GROUP_GET_ONE_ERROR_NAME_INCORRECT_OR_NOT_OWNER, new HashMap<>());
-            return null;
-        }
-
-        this.setStatus(ProcessorStatus.SUCCEEDED, Key.GROUP_GET_ONE_SUCCESS, new HashMap<>());
-        return group;
-    }
-
-    protected UserGroup getGroup(String groupName) {
-        if ( groupName == null ) {
-            this.setStatus(ProcessorStatus.FAILED, Key.GROUP_GET_ONE_ERROR, new HashMap<>());
-            return null;
-        }
-
-        if ( !this.isValidGroupName(groupName) ) {
-            this.setStatus(ProcessorStatus.FAILED, Key.GROUP_ERROR_NAME_INVALID, new HashMap<>());
-            return null;
-        }
-
-        UserGroup group = this.userGroupDao.loadByName(groupName);
-
-        if ( group == null ) {
-            this.setStatus(ProcessorStatus.FAILED, Key.GROUP_GET_ONE_ERROR_NAME_INORRECT, new HashMap<>());
+            this.setStatus(ProcessorStatus.FAILED, Key.GROUP_GET_ONE_ERROR_NOT_FOUND, new HashMap<>());
             return null;
         }
 
@@ -112,7 +91,7 @@ public class UserGroupProcessor extends AbstractProcessor {
         }
 
         if ( this.userGroupDao.getNumberOfGroupsOfOwner(groupOwner) >= UserGroupProcessor.OWNER_GROUP_LIMIT ) {
-            this.setStatus(ProcessorStatus.FAILED, Key.GROUP_CREATE_ERROR_OWNER_EXCEEDS_LIMIT, processorParameters);
+            this.setStatus(ProcessorStatus.FAILED, Key.GROUP_CREATE_ERROR_GROUP_LIMIT_REACHED, processorParameters);
             return;
         }
 
@@ -123,8 +102,8 @@ public class UserGroupProcessor extends AbstractProcessor {
             return;
         }
 
-        if ( this.getGroup(groupName) != null ) {
-            this.setStatus(ProcessorStatus.FAILED, Key.GROUP_CREATE_ERROR_ALREADY_EXISTS, processorParameters);
+        if ( this.getGroup(groupName, groupOwner) != null ) {
+            this.setStatus(ProcessorStatus.FAILED, Key.GROUP_CREATE_ERROR_GROUP_ALREADY_EXISTS, processorParameters);
             return;
         }
 
@@ -147,7 +126,7 @@ public class UserGroupProcessor extends AbstractProcessor {
     }
 
     protected boolean isValidGroupName(String groupName) {
-        //UserName pattern: Pattern p = Pattern.compile("[^a-zA-Z0-9=+!?.,%#+&^@_\\- ]", Pattern.CASE_INSENSITIVE);
+        //TODO: Implement Pattern. UserName pattern: Pattern p = Pattern.compile("[^a-zA-Z0-9=+!?.,%#+&^@_\\- ]", Pattern.CASE_INSENSITIVE);
         return groupName != null;
     }
 }
