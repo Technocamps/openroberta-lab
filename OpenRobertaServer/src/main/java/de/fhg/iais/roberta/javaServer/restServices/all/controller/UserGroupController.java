@@ -1,5 +1,7 @@
 package de.fhg.iais.roberta.javaServer.restServices.all.controller;
 
+import java.util.List;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -7,6 +9,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.slf4j.Logger;
@@ -19,6 +22,7 @@ import de.fhg.iais.roberta.main.MailManagement;
 import de.fhg.iais.roberta.persistence.UserGroupProcessor;
 import de.fhg.iais.roberta.persistence.UserProcessor;
 import de.fhg.iais.roberta.persistence.bo.User;
+import de.fhg.iais.roberta.persistence.bo.UserGroup;
 import de.fhg.iais.roberta.persistence.util.DbSession;
 import de.fhg.iais.roberta.persistence.util.HttpSessionState;
 import de.fhg.iais.roberta.robotCommunication.RobotCommunicator;
@@ -124,6 +128,162 @@ public class UserGroupController {
         return UtilForREST.responseWithFrontendInfo(response, httpSessionState, this.brickCommunicator);
     }
 
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/getUserGroupList")
+    public Response getUserGroupListForUser(@OraData DbSession dbSession, JSONObject fullRequest) throws Exception {
+        String cmd = "getUserGroup";
+
+        JSONObject response = new JSONObject();
+
+        try {
+            response.put("cmd", cmd);
+        } catch ( JSONException e ) {
+            // Can not happen, because the key is neither null, nor is the value numeric and infinite
+            e.printStackTrace();
+        }
+
+        UserGroupController.LOG.info("command is: " + cmd);
+
+        HttpSessionState httpSessionState = UtilForREST.handleRequestInit(UserGroupController.LOG, fullRequest);
+
+        if ( !httpSessionState.isUserLoggedIn() ) {
+            UserGroupController.LOG.error("Invalid command: " + cmd);
+            UtilForREST.addErrorInfo(response, Key.USER_ERROR_NOT_LOGGED_IN);
+            return UtilForREST.responseWithFrontendInfo(response, httpSessionState, this.brickCommunicator);
+        }
+
+        UserProcessor up = new UserProcessor(dbSession, httpSessionState);
+        User groupOwner;
+
+        try {
+            groupOwner = up.getUser(httpSessionState.getUserId());
+        } catch ( Exception e ) {
+            try {
+                UtilForREST.addErrorInfo(response, up.getMessage());
+            } catch ( JSONException e1 ) {
+                // Can not happen
+            }
+            return UtilForREST.responseWithFrontendInfo(response, httpSessionState, this.brickCommunicator);
+        }
+
+        if ( groupOwner == null ) {
+            UtilForREST.addErrorInfo(response, Key.SERVER_ERROR);
+            return UtilForREST.responseWithFrontendInfo(response, httpSessionState, this.brickCommunicator);
+        }
+
+        UserGroupProcessor ugp = new UserGroupProcessor(dbSession, httpSessionState, this.isPublicServer);
+        List<UserGroup> userGroups = ugp.getGroupsByOwner(groupOwner);
+
+        Statistics.info(cmd, "success", ugp.succeeded());
+
+        try {
+            UtilForREST.addResultInfo(response, ugp);
+        } catch ( Exception e ) {
+            //ignore
+        }
+
+        if ( ugp.succeeded() ) {
+            JSONArray userGroupInfos = new JSONArray();
+            JSONObject jsonObject;
+            for ( UserGroup userGroup : userGroups ) {
+                jsonObject = new JSONObject();
+                jsonObject.put("name", userGroup.getName());
+                jsonObject.put("members", 0); //TODO: Count number of members
+                jsonObject.put("programs", new JSONArray()); //TODO: Add list of shared programs from owner
+                jsonObject.put("created", userGroup.getCreated());
+                userGroupInfos.put(jsonObject);
+            }
+            response.put("userGroups", userGroupInfos);
+        }
+
+        return UtilForREST.responseWithFrontendInfo(response, httpSessionState, this.brickCommunicator);
+    }
+
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/getUserGroupMemberList")
+    public Response getUserGroupMemberListForUser(@OraData DbSession dbSession, JSONObject fullRequest) throws Exception {
+        String cmd = "getUserGroupMemberList";
+
+        JSONObject response = new JSONObject();
+
+        try {
+            response.put("cmd", cmd);
+        } catch ( JSONException e ) {
+            // Can not happen, because the key is neither null, nor is the value numeric and infinite
+            e.printStackTrace();
+        }
+
+        UserGroupController.LOG.info("command is: " + cmd);
+
+        HttpSessionState httpSessionState = UtilForREST.handleRequestInit(UserGroupController.LOG, fullRequest);
+
+        if ( !httpSessionState.isUserLoggedIn() ) {
+            UserGroupController.LOG.error("Invalid command: " + cmd);
+            UtilForREST.addErrorInfo(response, Key.USER_ERROR_NOT_LOGGED_IN);
+            return UtilForREST.responseWithFrontendInfo(response, httpSessionState, this.brickCommunicator);
+        }
+
+        UserProcessor up = new UserProcessor(dbSession, httpSessionState);
+        User groupOwner;
+
+        try {
+            groupOwner = up.getUser(httpSessionState.getUserId());
+        } catch ( Exception e ) {
+            try {
+                UtilForREST.addErrorInfo(response, up.getMessage());
+            } catch ( JSONException e1 ) {
+                // Can not happen
+            }
+            return UtilForREST.responseWithFrontendInfo(response, httpSessionState, this.brickCommunicator);
+        }
+
+        if ( groupOwner == null ) {
+            UtilForREST.addErrorInfo(response, Key.SERVER_ERROR);
+            return UtilForREST.responseWithFrontendInfo(response, httpSessionState, this.brickCommunicator);
+        }
+
+        String groupName;
+        try {
+            groupName = fullRequest.getJSONObject("data").getString("groupName");
+        } catch ( JSONException e ) {
+            UserGroupController.LOG.error("Invalid command: " + cmd);
+            try {
+                UtilForREST.addErrorInfo(response, Key.COMMAND_INVALID);
+            } catch ( JSONException e1 ) {
+                // Can not happen
+            }
+            return UtilForREST.responseWithFrontendInfo(response, httpSessionState, this.brickCommunicator);
+        }
+
+        UserGroupProcessor ugp = new UserGroupProcessor(dbSession, httpSessionState, this.isPublicServer);
+        List<User> members = ugp.getUserGroupMembers(groupName, groupOwner);
+
+        Statistics.info(cmd, "success", ugp.succeeded());
+
+        try {
+            UtilForREST.addResultInfo(response, ugp);
+        } catch ( Exception e ) {
+            //ignore
+        }
+
+        if ( ugp.succeeded() ) {
+            JSONArray userGroupMembers = new JSONArray();
+            JSONObject jsonObject;
+            for ( User user : members ) {
+                jsonObject = new JSONObject();
+                jsonObject.put("name", user.getAccount());
+                userGroupMembers.put(jsonObject);
+            }
+            response.put("members", userGroupMembers);
+        }
+
+        return UtilForREST.responseWithFrontendInfo(response, httpSessionState, this.brickCommunicator);
+    }
+
     /**
      * TODO: Check for isPublic on whether or not a global user can have a group or not
      *
@@ -202,7 +362,7 @@ public class UserGroupController {
         UserGroupProcessor ugp = new UserGroupProcessor(dbSession, httpSessionState, this.isPublicServer);
         ugp.createGroup(groupName, groupOwner);
 
-        Statistics.info("UserCreate", "success", ugp.succeeded());
+        Statistics.info(cmd, "success", ugp.succeeded());
 
         try {
             UtilForREST.addResultInfo(response, ugp);
@@ -218,4 +378,96 @@ public class UserGroupController {
         return UtilForREST.responseWithFrontendInfo(response, httpSessionState, this.brickCommunicator);
     }
 
+    /**
+     * TODO: Check for isPublic on whether or not a global user can have a group or not
+     *
+     * @param dbSession
+     * @param fullRequest
+     * @return
+     */
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/deleteUserGroup")
+    public Response deleteUserGroup(@OraData DbSession dbSession, JSONObject fullRequest) {
+        String cmd = "deleteUserGroup";
+        JSONObject response = new JSONObject();
+
+        try {
+            response.put("cmd", cmd);
+        } catch ( JSONException e ) {
+            // Can not happen, because the key is neither null, nor is the value numeric and infinite
+            e.printStackTrace();
+        }
+
+        UserGroupController.LOG.info("command is: " + cmd);
+
+        HttpSessionState httpSessionState = UtilForREST.handleRequestInit(UserGroupController.LOG, fullRequest);
+
+        if ( !httpSessionState.isUserLoggedIn() ) {
+            UserGroupController.LOG.error("Invalid command: " + cmd);
+            try {
+                UtilForREST.addErrorInfo(response, Key.USER_ERROR_NOT_LOGGED_IN);
+            } catch ( JSONException e ) {
+                // Can not happen
+            }
+            return UtilForREST.responseWithFrontendInfo(response, httpSessionState, this.brickCommunicator);
+        }
+
+        UserProcessor up = new UserProcessor(dbSession, httpSessionState);
+        User groupOwner;
+        try {
+            groupOwner = up.getUser(httpSessionState.getUserId());
+        } catch ( Exception e ) {
+            try {
+                UtilForREST.addErrorInfo(response, up.getMessage());
+            } catch ( JSONException e1 ) {
+                // Can not happen
+            }
+            return UtilForREST.responseWithFrontendInfo(response, httpSessionState, this.brickCommunicator);
+        }
+
+        if ( groupOwner == null || !up.succeeded() ) {
+            UserGroupController.LOG.error("Invalid command: " + cmd);
+            //TODO: Discuss - This should always work. Shall we therefore really pass the processor
+            //error to the user, or rather send a default server error instead?
+            try {
+                UtilForREST.addErrorInfo(response, up.getMessage());
+            } catch ( JSONException e ) {
+                // Can not happen
+            }
+            return UtilForREST.responseWithFrontendInfo(response, httpSessionState, this.brickCommunicator);
+        }
+
+        String groupName;
+        try {
+            groupName = fullRequest.getJSONObject("data").getString("groupName");
+        } catch ( JSONException e ) {
+            UserGroupController.LOG.error("Invalid command: " + cmd);
+            try {
+                UtilForREST.addErrorInfo(response, Key.COMMAND_INVALID);
+            } catch ( JSONException e1 ) {
+                // Can not happen
+            }
+            return UtilForREST.responseWithFrontendInfo(response, httpSessionState, this.brickCommunicator);
+        }
+
+        UserGroupProcessor ugp = new UserGroupProcessor(dbSession, httpSessionState, this.isPublicServer);
+        ugp.deleteGroup(groupName, groupOwner);
+
+        Statistics.info(cmd, "success", ugp.succeeded());
+
+        try {
+            UtilForREST.addResultInfo(response, ugp);
+        } catch ( JSONException e ) {
+            // Can not happen
+        }
+
+        if ( !ugp.succeeded() ) {
+            dbSession.rollback();
+        }
+
+        dbSession.close();
+        return UtilForREST.responseWithFrontendInfo(response, httpSessionState, this.brickCommunicator);
+    }
 }

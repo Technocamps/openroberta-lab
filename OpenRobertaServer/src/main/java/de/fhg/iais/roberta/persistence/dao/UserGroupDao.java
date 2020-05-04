@@ -118,16 +118,16 @@ public class UserGroupDao extends AbstractDao<UserGroup> {
         return Collections.unmodifiableList(il);
     }
 
-    public int getNumberOfGroupsOfOwner(User groupOwner) {
+    public long getNumberOfGroupsOfOwner(User groupOwner) {
         Assert.notNull(groupOwner);
 
         Query hql = this.session.createQuery("select count(id) from UserGroup g where owner=:owner");
         hql.setEntity("owner", groupOwner);
 
         @SuppressWarnings("unchecked")
-        Iterator<Integer> resultIterator = hql.iterate();
+        Iterator<Long> resultIterator = hql.iterate();
 
-        return resultIterator.hasNext() ? resultIterator.next().intValue() : 0;
+        return resultIterator.hasNext() ? resultIterator.next() : 0L;
     }
 
     /**

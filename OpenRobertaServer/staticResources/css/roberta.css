@@ -1676,7 +1676,8 @@ input[type=range]:focus::-ms-fill-upper {
 #confList table thead,
 #show-relations table thead,
 #showMultipleSimPrograms table thead,
-#logList table thead {
+#logList table thead,
+#userGroupList table thead {
     text-transform: uppercase;
     background-color: #898989;
     color: #ffffff;
@@ -1715,6 +1716,18 @@ input[type=range]:focus::-ms-fill-upper {
 #logList>h2 {
     margin-left: 68px;
 }
+
+#create-user-group .modal-body {
+	margin-bottom: 1em 0 2.5em;
+}
+
+.pull-none .pull-right {
+	margin-left: 4px;
+}
+.pull-none .pull-left {
+	margin-right: 4px;
+}
+
 @media only screen and (max-width: 767px) {
     #main-section {
         padding-top: 56px;

@@ -286,6 +286,7 @@ limitations under the License.
                 <li class="hidden"><a data-toggle="tab" id="tabGalleryList" href="#galleryList">Galery</a></li>
                 <li class="hidden"><a data-toggle="tab" id="tabTutorialList" href="#tutorialList">Tutorial</a></li>
                 <li class="hidden"><a data-toggle="tab" id="tabUserGroupList" href="#userGroupList">UserGroup List</a></li>
+                <li class="hidden"><a data-toggle="tab" id="tabUserGroupMemberList" href="#userGroupMemberList">UserGroup Member List</a></li>
             </ul>
         </div>
     </nav>
@@ -499,13 +500,66 @@ limitations under the License.
             <table id="tutorialTable" class="galleryTable">
             </table>
         </div>
-        <div id="userGroupList" class="tab-pane fade">
+        <div id="userGroupList" class="tab-pane fade bootstrap-table">
             <div id="userGroupListToolbar">
-                <button id="backUserGroupList" class="btn backList" lkey="Blockly.Msg.LIST_BACK_TOOLTIP" rel="tooltip" data-original-title="Back to previous view.">
-                    <i class="typcn typcn-arrow-left"></i>
-                </button>
+                <div class="bars pull-left">
+	                <button id="backUserGroupList" 
+	                		class="btn backList typcn typcn-arrow-left" 
+	                		lkey="Blockly.Msg.LIST_BACK_TOOLTIP"
+	                		rel="tooltip"
+	                		data-original-title="Back to previous view."></button>
+                </div>
+                <div class="bars pull-right">
+	                <button id="showCreateUserGroupPopup" 
+	                		class="btn typcn typcn-plus" 
+	                		lkey="Blockly.Msg.USERGROUP_CREATE"
+	                		rel="tooltip"
+	                		data-original-title="Create new user-group."></button>
+                </div>
             </div>
             <table id="userGroupTable">
+            	<tr class="action-items-template">
+            		<td>
+            			<a href="#" class="delete typcn typcn-delete" lkey="Blockly.Msg.DELETE_TOOLTIP" rel="tooltip" data-original-title="" title=""></a>
+            			<a href="#" class="share typcn typcn-flow-merge" lkey="Blockly.Msg.PROGLIST_SHARE_TOOLTIP" rel="tooltip" data-original-title="" title=""></a>
+            		</td>
+            	</tr>
+            </table>
+        </div>
+        <div id="userGroupMemberList" class="tab-pane fade bootstrap-table">
+            <div id="userGroupMemberListToolbar">
+                <div class="bars pull-left">
+	                <button id="backUserGroupMemberList" 
+	                		class="btn backList typcn typcn-arrow-left" 
+	                		lkey="Blockly.Msg.LIST_BACK_TOOLTIP"
+	                		rel="tooltip"
+	                		data-original-title="Back to previous view."></button>
+	                <strong id="userGroupMemberListHeader"></strong>
+                </div>
+                <div class="bars pull-right">
+	                <button id="showAddMembersPopup" 
+	                		class="btn typcn typcn-plus" 
+	                		lkey="Blockly.Msg.USERGROUP_MEMBER_CREATE"
+	                		rel="tooltip"
+	                		data-original-title="Create new member accounts."></button>
+	                <button id="printUSerInfo" 
+	                		class="btn typcn typcn-plus" 
+	                		lkey="Blockly.Msg.USERGROUP_MEMBER_PRINT"
+	                		rel="tooltip"
+	                		data-original-title="Print out login info for users."></button>
+                </div>
+            </div>
+            <table id="userGroupMemberTable">
+            	<tr class="reset-password-template">
+            		<td>
+            			<a href="#" class="reset-password typcn typcn-refresh" lkey="Blockly.Msg.RESET_PASSWORD" rel="tooltip" data-original-title="" title=""></a>
+            		</td>
+            	</tr>
+            	<tr class="action-items-template">
+            		<td>
+            			<a href="#" class="delete typcn typcn-delete" lkey="Blockly.Msg.MENU_DELETE_USER" rel="tooltip" data-original-title="" title=""></a>
+            		</td>
+            	</tr>
             </table>
         </div>
         <div id="configuration" class="tab-pane fade">
@@ -1206,6 +1260,35 @@ limitations under the License.
                     <div id='OKButtonModalFooter' class="modal-footer">
                         <button type="button" class="btn btn-primary" data-dismiss="modal" autofocus>OK</button>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--  Popup to show create form for new user-group -->
+    <div id="create-user-group" class="modal fade">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h3 id="#headCreateUserGroup" class="modal-title" lkey="Blockly.Msg.USERGROUP_CREATE">Create usergroup</h3>
+                </div>
+                <div class="modal-body">
+                     <form id="user-group-form" name="userGroup">
+                        <div class="modal-body" style="width: 'auto'; height:'auto'; max-height:'100%">
+                            <div class="form-group">
+                                <label for="createAccountName" lkey="Blockly.Msg.USERGROUP_NAME">Group name</label>
+                                <div class="input-group">
+                                    <span class="input-group-addon typcn input-typcn typcn-tag"></span> <input type="text" class="form-control"
+                                        id="userGroupNameInput" name="name" />
+                                </div>
+                                <div class="hint" style="display: none"></div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary accept-button" lkey="Blockly.Msg.USERGROUP_CREATE">Create usergroup</button>
+                    <button type="button" class="btn backButton close-button" lkey="Blockly.Msg.POPUP_CANCEL"></button>
                 </div>
             </div>
         </div>

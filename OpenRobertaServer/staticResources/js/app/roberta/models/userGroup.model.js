@@ -3,7 +3,7 @@
  * 
  * @module rest/program
  */
-define([ 'exports', 'comm' ], function(exports, COMM) {
+define([ 'exports', 'comm', 'guiState.model' ], function(exports, COMM, GUI) {
 
 
     /**
@@ -14,34 +14,41 @@ define([ 'exports', 'comm' ], function(exports, COMM) {
      * @param successFn
      *            {Function} - a callback that is called when the creation succeeds. Needs to take one parameter "data"
      */
-    function getUserGroupFromServer(groupName, successFn) {
+    function loadUserGroup(groupName, successFn) {
         COMM.json("/userGroup/getUserGroup", {
             "cmd" : "getUser",
             "groupName" : groupName,
-        }, successFn, "got user info from server");
+        }, successFn, 'Got all information of the usergroup "' + groupName + '" of the user "' + GUI.user.accountName + '" from the server.');
     }
 
-    exports.getUserGroupFromServer = getUserGroupFromServer;
+    exports.loadUserGroup = loadUserGroup;
 
     /**
      * Retrieves all userGroups from the server, for which the currently logged in user is the owner.
      * 
-     * @param groupName
-     *            {String} - name of the userGroup
      * @param successFn
      *            {Function} - a callback that is called when the creation succeeds. Needs to take one parameter "data"
      */
-    function getUserGroupsFromServer(successFn) {
-        COMM.json("/userGroup/getUserGroup", {
-            "cmd" : "getUser",
-            "groupName" : groupName,
-        }, successFn, "got user info from server");
+    function loadUserGroupList(successFn) {
+        COMM.json("/userGroup/getUserGroupList", null, successFn, 'Got the list of usergroups for the user "' + GUI.user.accountName + '" from the server.');
     }
-
-    exports.getUserGroupsFromServer = getUserGroupsFromServer;
+    exports.loadUserGroupList = loadUserGroupList;
 
     /**
-     * Create user to server.
+     * Retrieves all members of the usergroup of the provided name from the server, for which the currently logged in user is the owner.
+     * 
+     * @param groupName
+     *            {String} - name of the userGroup
+     * @param successFn
+     *            {Function} - a callback that is called when the creation succeeds. Needs to take one parameter "data"
+     */
+    function loadUserGroupMemberList(groupName, successFn) {
+        COMM.json("/userGroup/getUserGroupMemberList", null, successFn, 'Got the list of members for the usergroup "' + groupName + '" of the user "' + GUI.user.accountName + '" from the server.');
+    }
+    exports.loadUserGroupMemberList = loadUserGroupMemberList;
+
+    /**
+     * Create a usergroup on the server.
      * 
      * @param groupName
      *            {String} - name of the userGroup
@@ -49,13 +56,21 @@ define([ 'exports', 'comm' ], function(exports, COMM) {
      *            {Function} - a callback that is called when the creation succeeds. Needs to take one parameter "data"
      * 
      */
-    function createUserGroupToServer(groupName, successFn) {
+    function createUserGroup(groupName, successFn) {
         COMM.json("/userGroup/createUserGroup", {
-            "cmd" : "createUserGroup",
-            "groupName" : groupName,
-        }, function (data) {debugger; successFn(data);}, "save user '" + accountName + "' to server");
+            cmd : 'createUserGroup',
+            groupName : groupName,
+        }, function (data) {successFn(data);}, 'Create usergroup "' + groupName + '" for user "' + GUI.user.accountName + '" on server.');
     }
 
-    exports.createUserGroupToServer = createUserGroupToServer;
+    exports.createUserGroup = createUserGroup;
+    
+    function deleteUserGroup(groupName, successFn) {
+        COMM.json("/userGroup/deleteUserGroup", {
+            cmd : 'deleteUserGroup',
+            groupName : groupName,
+        }, function (data) {successFn(data);}, 'Delete usergroup "' + groupName + '" of user "' + GUI.user.accountName + '" on server.');
+    }
+    exports.deleteUserGroup = deleteUserGroup;
 
 });

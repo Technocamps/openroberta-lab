@@ -129,7 +129,7 @@ require([ 'require', 'wrap', 'log', 'jquery', 'jquery-cookie', 'guiState.control
         'progDelete.controller', 'confDelete.controller', 'progShare.controller', 'menu.controller', 'multSim.controller', 'user.controller',
         'robot.controller', 'program.controller', 'progSim.controller', 'progCode.controller', 'progDelete.controller', 'progHelp.controller',
         'legal.controller', 'progInfo.controller', 'progRun.controller', 'configuration.controller', 'language.controller', 'socket.controller',
-        'progTutorial.controller', 'tutorialList.controller', 'volume-meter', 'user.model', 'webview.controller', 'sourceCodeEditor.controller', 'codeflask' ], function(
+        'progTutorial.controller', 'tutorialList.controller', 'userGroup.controller', 'volume-meter', 'user.model', 'webview.controller', 'sourceCodeEditor.controller', 'codeflask' ], function(
         require) {
     $ = require('jquery', 'jquery-cookie');
     WRAP = require('wrap');
@@ -161,6 +161,7 @@ require([ 'require', 'wrap', 'log', 'jquery', 'jquery-cookie', 'guiState.control
     socketController = require('socket.controller');
     tutorialController = require('progTutorial.controller');
     tutorialListController = require('tutorialList.controller');
+    userGroupController = require('userGroup.controller');
     webviewController = require('webview.controller');
     sourceCodeEditorController = require('sourceCodeEditor.controller');
     codeflask = require('codeflask');
@@ -201,6 +202,7 @@ function init() {
         progRunController.init();
         menuController.init();
         tutorialController.init();
+        userGroupController.init();
 
         // immediately remove old cookies TODO remove this and jquery-cookie after 30 days
         var cookies = $.cookie();
