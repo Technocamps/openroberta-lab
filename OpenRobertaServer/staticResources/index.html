@@ -500,7 +500,7 @@ limitations under the License.
             <table id="tutorialTable" class="galleryTable">
             </table>
         </div>
-        <div id="userGroupList" class="tab-pane fade bootstrap-table">
+        <div id="userGroupList" class="tab-pane fade">
             <div id="userGroupListToolbar">
                 <div class="bars pull-left">
 	                <button id="backUserGroupList" 
@@ -520,8 +520,8 @@ limitations under the License.
             <table id="userGroupTable">
             	<tr class="action-items-template">
             		<td>
-            			<a href="#" class="delete typcn typcn-delete" lkey="Blockly.Msg.DELETE_TOOLTIP" rel="tooltip" data-original-title="" title=""></a>
-            			<a href="#" class="share typcn typcn-flow-merge" lkey="Blockly.Msg.PROGLIST_SHARE_TOOLTIP" rel="tooltip" data-original-title="" title=""></a>
+            			<a href="#" class="delete typcn typcn-delete" lkey="Blockly.Msg.DELETE_TOOLTIP" data-translation-targets="data-original-title title" data-original-title="" title=""></a>
+            			<a href="#" class="share typcn typcn-flow-merge" lkey="Blockly.Msg.PROGLIST_SHARE_TOOLTIP" data-translation-targets="data-original-title title" data-original-title="" title=""></a>
             		</td>
             	</tr>
             </table>
@@ -534,16 +534,19 @@ limitations under the License.
 	                		lkey="Blockly.Msg.LIST_BACK_TOOLTIP"
 	                		rel="tooltip"
 	                		data-original-title="Back to previous view."></button>
-	                <strong id="userGroupMemberListHeader"></strong>
+	                <span>
+	                	<strong lkey="Blockly.Msg.DATATABLE_USERGROUP_NAME">GROUPNAME</strong>
+	                	<span id="userGroupMemberListHeader"></span>
+                	</span>
                 </div>
                 <div class="bars pull-right">
 	                <button id="showAddMembersPopup" 
-	                		class="btn typcn typcn-plus" 
+	                		class="btn typcn typcn-user-add" 
 	                		lkey="Blockly.Msg.USERGROUP_MEMBER_CREATE"
 	                		rel="tooltip"
 	                		data-original-title="Create new member accounts."></button>
 	                <button id="printUSerInfo" 
-	                		class="btn typcn typcn-plus" 
+	                		class="btn typcn typcn-printer" 
 	                		lkey="Blockly.Msg.USERGROUP_MEMBER_PRINT"
 	                		rel="tooltip"
 	                		data-original-title="Print out login info for users."></button>
@@ -552,12 +555,12 @@ limitations under the License.
             <table id="userGroupMemberTable">
             	<tr class="reset-password-template">
             		<td>
-            			<a href="#" class="reset-password typcn typcn-refresh" lkey="Blockly.Msg.RESET_PASSWORD" rel="tooltip" data-original-title="" title=""></a>
+            			<a href="#" class="" lkey="Blockly.Msg.RESET_PASSWORD" rel="tooltip" data-translation-targets="data-original-title title" data-original-title="" title=""></a>
             		</td>
             	</tr>
             	<tr class="action-items-template">
             		<td>
-            			<a href="#" class="delete typcn typcn-delete" lkey="Blockly.Msg.MENU_DELETE_USER" rel="tooltip" data-original-title="" title=""></a>
+            			<a href="#" class="delete typcn typcn-delete" lkey="Blockly.Msg.MENU_DELETE_USER" data-translation-targets="data-original-title title" data-original-title="" title=""></a>
             		</td>
             	</tr>
             </table>
@@ -1278,8 +1281,16 @@ limitations under the License.
                             <div class="form-group">
                                 <label for="createAccountName" lkey="Blockly.Msg.USERGROUP_NAME">Group name</label>
                                 <div class="input-group">
-                                    <span class="input-group-addon typcn input-typcn typcn-tag"></span> <input type="text" class="form-control"
-                                        id="userGroupNameInput" name="name" />
+                                    <span class="input-group-addon typcn input-typcn typcn-tag"></span>
+                                    <input type="text" class="form-control" id="userGroupNameInput" name="name" />
+                                </div>
+                                <div class="hint" style="display: none"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="initialMembersInput" lkey="Blockly.Msg.USERGROUP_INITIAL_MEMBERS">Number of initial members</label>
+                                <div class="input-group">
+                                    <span class="input-group-addon typcn input-typcn typcn-user-add"></span>
+                                    <input type="number" min="0" max="99" value="20" class="form-control" id="initialMembersInput" name="initialMembers" />
                                 </div>
                                 <div class="hint" style="display: none"></div>
                             </div>
@@ -1289,6 +1300,25 @@ limitations under the License.
                 <div class="modal-footer">
                     <button type="button" class="btn btn-primary accept-button" lkey="Blockly.Msg.USERGROUP_CREATE">Create usergroup</button>
                     <button type="button" class="btn backButton close-button" lkey="Blockly.Msg.POPUP_CANCEL"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--  Popup to share programs with usergroup -->
+    <div id="show-share-program-with-usergroup" class="modal fade in">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h3 id="#headShare" class="modal-title">Share</h3>
+                </div>
+                <div class="modal-body">
+                    <table id="relationsTable">
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="shareProgram">OK</button>
+                    <input type="button" class="btn backButton" data-dismiss="modal" lkey="Blockly.Msg.POPUP_CANCEL"></input>
                 </div>
             </div>
         </div>

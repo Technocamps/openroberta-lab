@@ -16,7 +16,12 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
+
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 
 import de.fhg.iais.roberta.util.Util;
 import de.fhg.iais.roberta.util.dbc.Assert;
@@ -43,9 +48,26 @@ public class UserGroup implements WithSurrogateId {
     @Column(name = "CREATED")
     private Timestamp created;
 
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "group")
+    private Set<User> members;
+
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(name = "USERGROUP_ROBOTS", joinColumns = @JoinColumn(name = "USERGROUP_ID"), inverseJoinColumns = @JoinColumn(name = "ROBOT_ID"))
     private Set<Robot> robots;
+
+    /*
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JoinTable(name = "USERGROUP_PROGRAMS", joinColumns = @JoinColumn(name = "USERGROUP_ID"), inverseJoinColumns = @JoinColumn(name = "PROGRAM_ID"))
+    private Set<Program> programs;
+    
+    
+    public Set<Program> getPrograms() {
+        if ( this.programs == null ) {
+            this.programs = new HashSet<>();
+        }
+        return new HashSet<>(this.programs);
+    }
+    */
 
     protected UserGroup() {
         // Hibernate
@@ -137,6 +159,28 @@ public class UserGroup implements WithSurrogateId {
         return new HashSet<>(this.robots);
     }
 
+    public void addMember(User member) {
+        if ( this.members == null ) {
+            this.members = new HashSet<>();
+        }
+        this.members.add(member);
+    }
+
+    public void removeMember(User member) {
+        if ( this.members == null ) {
+            this.members = new HashSet<>();
+        } else {
+            this.members.remove(member);
+        }
+    }
+
+    public Set<User> getMembers() {
+        if ( this.members == null ) {
+            this.members = new HashSet<>();
+        }
+        return new HashSet<>(this.members);
+    }
+
     @Override
     public String toString() {
         return "UserGroup [id="
@@ -153,5 +197,71 @@ public class UserGroup implements WithSurrogateId {
     public void rename(String newGroupName) {
         Assert.notNull(newGroupName);
         this.name = newGroupName;
+    }
+
+    /**
+     * Converts the UserGroup Object into a JSON representation, which's structure is optimized for showing it in a front end list
+     *
+     * @return JSObject A JSON representation of the UserGroup object
+     */
+    public JSONObject toListJSON() {
+        JSONObject jsonObject = new JSONObject(), tmp;
+        JSONArray members = new JSONArray(), programs = new JSONArray(), robots = new JSONArray();
+
+        /*
+         * TODO: Implement and uncomment
+        for ( Program program : this.getPrograms() ) {
+            try {
+                tmp = new JSONObject();
+                tmp.put("id", program.getId());
+                tmp.put("name", program.getName());
+                programs.put(tmp);
+            } catch ( JSONException e ) {
+                return null;
+            }
+        }
+        */
+
+        for ( User user : this.getMembers() ) {
+            try {
+                tmp = new JSONObject();
+                //TODO: Call method in USer class, do not re implement it here. Or create a new method in the JSON UTIL? Discuss with team
+                tmp.put("id", user.getId());
+                tmp.put("account", user.getAccount());
+                tmp.put("hasDefaultPassword", user.isPasswordCorrect(user.getAccount()));
+                members.put(tmp);
+            } catch ( Exception e ) {
+                //Either a JSONException, or a general Exception in case of the Password check
+                return null;
+            }
+        }
+
+        for ( Robot robot : this.getRobots() ) {
+            try {
+                tmp = new JSONObject();
+                //TODO: Call method in USer class, do not re implement it here. Or create a new method in the JSON UTIL? Discuss with team
+                tmp.put("id", robot.getId());
+                tmp.put("name", robot.getName());
+                robots.put(tmp);
+            } catch ( Exception e ) {
+                //Either a JSONException, or a general Exception in case of the Password check
+                return null;
+            }
+        }
+
+        //TODO: Count number of members
+        //TODO: Add list of shared programs from owner
+
+        try {
+            jsonObject.put("name", this.getName());
+            jsonObject.put("owner", this.getOwner().getAccount());
+            jsonObject.put("created", this.getCreated());
+            jsonObject.put("members", members);
+            jsonObject.put("programs", programs);
+            jsonObject.put("robots", robots);
+        } catch ( JSONException e ) {
+            return null;
+        }
+        return jsonObject;
     }
 }
