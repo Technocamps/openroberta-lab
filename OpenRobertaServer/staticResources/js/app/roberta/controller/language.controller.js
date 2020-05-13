@@ -195,6 +195,11 @@ define([ 'exports', 'log', 'jquery', 'guiState.controller', 'program.controller'
                 $('#confNameTable').find('.load').attr('data-original-title', value);
             } else if (lkey == 'Blockly.Msg.OLDER_THEN_14' || lkey == 'Blockly.Msg.YOUNGER_THEN_14') {
                 $(this).html(value);
+            } else if ($(this).data('translationTargets')) {
+                var attributeTargets = $(this).data('translationTargets').split(' ');
+                for(var key in attributeTargets) {
+                    $(this).attr(attributeTargets[key], value);
+                };
             } else {
                 $(this).html(value);
                 $(this).attr('value', value);

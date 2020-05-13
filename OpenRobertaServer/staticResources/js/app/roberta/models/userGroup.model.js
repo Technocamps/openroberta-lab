@@ -79,5 +79,13 @@ define([ 'exports', 'comm', 'guiState.model' ], function(exports, COMM, GUI) {
         }, function (data) {successFn(data);}, 'Delete usergroup "' + groupName + '" of user "' + GUI.user.accountName + '" on server.');
     }
     exports.deleteUserGroup = deleteUserGroup;
+    
+    function setUserGroupMemberDefaultPassword(groupMemberId, successFn) {
+        COMM.json("/userGroup/setUserGroupMemberDefaultPassword", {
+            cmd: 'setUserGroupMemberDefaultPassword',
+            groupMemberId: groupMemberId
+        }, function (data) {successFn(data);}, 'Reset the password of user "' + groupMemberId + '" to userGroup default on server.');
+    }
+    exports.setUserGroupMemberDefaultPassword = setUserGroupMemberDefaultPassword;
 
 });

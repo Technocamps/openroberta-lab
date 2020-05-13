@@ -1,6 +1,8 @@
 package de.fhg.iais.roberta.javaServer.restServices.all.controller;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -19,6 +21,7 @@ import com.google.inject.Inject;
 
 import de.fhg.iais.roberta.javaServer.provider.OraData;
 import de.fhg.iais.roberta.main.MailManagement;
+import de.fhg.iais.roberta.persistence.ProcessorStatus;
 import de.fhg.iais.roberta.persistence.UserGroupProcessor;
 import de.fhg.iais.roberta.persistence.UserProcessor;
 import de.fhg.iais.roberta.persistence.bo.User;
@@ -389,6 +392,89 @@ public class UserGroupController {
         }
 
         dbSession.close();
+        return UtilForREST.responseWithFrontendInfo(response, httpSessionState, this.brickCommunicator);
+    }
+
+    /**
+     * This method is here and not in the user controller, because the group owner needs to be logged in in order to run it.
+     *
+     * @param dbSession
+     * @param fullRequest
+     * @return
+     * @throws Exception
+     */
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/setUserGroupMemberDefaultPassword")
+    public Response setUserGroupMemberDefaultPassword(@OraData DbSession dbSession, JSONObject fullRequest) throws Exception {
+        JSONObject response = new JSONObject();
+        HttpSessionState httpSessionState = UtilForREST.handleRequestInit(UserGroupController.LOG, fullRequest);
+        try {
+            Map<String, String> responseParameters = new HashMap<>();
+            JSONObject requestData = fullRequest.getJSONObject("data");
+            String cmd = "setUserGroupMemberDefaultPassword";
+            UserGroupController.LOG.info("command is: " + cmd);
+            response.put("cmd", cmd);
+            UserProcessor up = new UserProcessor(dbSession, httpSessionState);
+
+            if ( !httpSessionState.isUserLoggedIn() ) {
+                up.setStatus(ProcessorStatus.FAILED, Key.USER_ERROR_NOT_LOGGED_IN, responseParameters);
+                UtilForREST.addResultInfo(response, up);
+                return UtilForREST.responseWithFrontendInfo(response, httpSessionState, this.brickCommunicator);
+            }
+
+            int groupOwnerId = httpSessionState.getUserId();
+            User groupOwner = up.getUser(groupOwnerId);
+
+            if ( groupOwner == null ) {
+                //If the logged in user can not be found by ID, there is a server error, not the user processor "userName or id wrong" error
+                up.setStatus(ProcessorStatus.FAILED, Key.SERVER_ERROR, responseParameters);
+                UtilForREST.addResultInfo(response, up);
+                return UtilForREST.responseWithFrontendInfo(response, httpSessionState, this.brickCommunicator);
+            }
+
+            int groupMemberId = requestData.getInt("groupMemberId");
+
+            if ( groupMemberId <= 0 ) {
+                up.setStatus(ProcessorStatus.FAILED, Key.COMMAND_INVALID, responseParameters);
+                UtilForREST.addResultInfo(response, up);
+                return UtilForREST.responseWithFrontendInfo(response, httpSessionState, this.brickCommunicator);
+            }
+
+            User groupMember = up.getUser(groupMemberId);
+
+            if ( groupMember == null || !up.succeeded() ) {
+                //Overwrite the user processor "userName or id wrong" status, so people can not use this resource to test if specific accounts exist
+                up.setStatus(ProcessorStatus.FAILED, Key.COMMAND_INVALID, responseParameters);
+                UtilForREST.addResultInfo(response, up);
+                return UtilForREST.responseWithFrontendInfo(response, httpSessionState, this.brickCommunicator);
+            }
+
+            UserGroup userGroup = groupMember.getGroup();
+
+            if ( userGroup == null || userGroup.getOwner().getId() != groupOwnerId ) {
+                up.setStatus(ProcessorStatus.FAILED, Key.COMMAND_INVALID, responseParameters);
+                UtilForREST.addResultInfo(response, up);
+                return UtilForREST.responseWithFrontendInfo(response, httpSessionState, this.brickCommunicator);
+            }
+
+            //Set the userName as password.
+            up.resetPassword(groupMember.getId(), groupMember.getAccount());
+
+            //user processor will set status accordingly in the resetPassword method
+
+            UtilForREST.addResultInfo(response, up);
+        } catch ( Exception e ) {
+            dbSession.rollback();
+            String errorTicketId = Util.getErrorTicketId();
+            UserGroupController.LOG.error("Exception. Error ticket: " + errorTicketId, e);
+            UtilForREST.addErrorInfo(response, Key.SERVER_ERROR).append("parameters", errorTicketId);
+        } finally {
+            if ( dbSession != null ) {
+                dbSession.close();
+            }
+        }
         return UtilForREST.responseWithFrontendInfo(response, httpSessionState, this.brickCommunicator);
     }
 }

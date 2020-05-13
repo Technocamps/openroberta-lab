@@ -3,6 +3,7 @@ define([ 'exports', 'log', 'message', 'comm', 'util', 'userGroup.model', 'guiSta
     
     //TODO: If user logs out and is in one of this views, change to program view
     var $userGroupTable;
+    var $userGroupMemberTable;
     
     function showPanel() {
         $userGroupTable.bootstrapTable('showLoading');
@@ -25,6 +26,7 @@ define([ 'exports', 'log', 'message', 'comm', 'util', 'userGroup.model', 'guiSta
      */
     function init() {
         $userGroupTable = $('#userGroupTable');
+        $userGroupMemberTable = $('#userGroupMemberTable');
         
         initUserGroupListTable();
         initUserGroupEvents();
@@ -329,13 +331,15 @@ define([ 'exports', 'log', 'message', 'comm', 'util', 'userGroup.model', 'guiSta
     /* This is an internal function and a part of the initialization. Do not export it. */
     
     function initUserGroupMemberListTable() {
-        var $memberPasswordResetTemplate = $('#userGroupMemberTable .reset-password-template'),
-            $memberActionItemsTemplate = $('#userGroupMemberTable .action-items-template');
+        var $memberPasswordResetTemplate = $userGroupMemberTable.find('.reset-password-template'),
+            $memberActionItemsTemplate = $userGroupMemberTable.find('.action-items-template'),
+            $memberActionItemsHeaderTemplate = $userGroupMemberTable.find('.action-items-header-template');
         
         $memberPasswordResetTemplate.remove();
         $memberActionItemsTemplate.remove();
+        $memberActionItemsHeaderTemplate.remove();
         
-        $('#userGroupMemberTable').bootstrapTable({
+        $userGroupMemberTable.bootstrapTable({
             height : UTIL.calcDataTableHeight(),
             pageList : '[ 10, 25, All ]',
             toolbar : '#userGroupMemberListToolbar',
@@ -354,31 +358,24 @@ define([ 'exports', 'log', 'message', 'comm', 'util', 'userGroup.model', 'guiSta
                 refresh : 'typcn-refresh',
             },
             columns : [ {
-                title : "<span lkey='Blockly.Msg.POPUP_USERNAME'>" + (Blockly.Msg.POPUP_USERNAME || "Username") + "</span>",
+                title : "<span lkey='Blockly.Msg.MENU_USER_TOOLTIP'>" + (Blockly.Msg.MENU_USER_TOOLTIP || "User") + "</span>",
                 field: 'account',
+                formatter : function(value, row, index) {
+                    return value.substr(value.lastIndexOf('_') + 1);
+                },
                 sortable : true,
             }, {
-                title : "<span lkey='Blockly.Msg.RESET_PASSWORD'>" + (Blockly.Msg.RESET_PASSWORD || "Reset password") + "</span>",
-                field: 'hasDefaultPassword',
-                events : {
-                    'click .reset-password' : function(e, value, row, index) {
-                        e.stopPropagation();
-                      //TODO: Call REST resource to reset the password
-                        debugger;
-                    }
+                title : "<span lkey='Blockly.Msg.POPUP_PASSWORD'>" + (Blockly.Msg.POPUP_PASSWORD || "Password") + "</span>",
+                field: 'password',
+                formatter : function(value, row, index) {
+                    return row.hasDefaultPassword ? row.account : '************';
                 },
                 sortable : false,
-                formatter : function(value, row, index) {
-                    return $memberPasswordResetTemplate.find('td').html();
-                },
-                align : 'center',
-                valign : 'middle',
             }, {
                 checkbox : true,
                 valign : 'middle',
             }, {
-                title : '<a href="#" id="deleteUserGroupMembers" class="delete-user-group-members disabled" lkey="Blockly.Msg.PROGLIST_DELETE_ALL_TOOLTIP" data-original-title="" data-container="body" title="">'
-                    + '<span class="typcn typcn-delete"></span></a>', //TODO: Rework for user-groups-member mass delete
+                title : $memberActionItemsHeaderTemplate.find('td').html(), //TODO: Rework for user-groups-member mass delete
                 events : {
                     'click .delete' : function(e, value, row, index) {
                         e.stopPropagation();
@@ -414,12 +411,52 @@ define([ 'exports', 'log', 'message', 'comm', 'util', 'userGroup.model', 'guiSta
                                 MSG.displayInformation(data, data.cause, data.cause);
                             }
                         });
+                    },
+                    'click .reset-password' : function(e, value, row, index) {
+                        e.stopPropagation();
+                        
+                        var $button = $(this);
+                        if ($button.hasClass('disabled') || !row.account) {
+                            return;
+                        }
+                        
+                        USERGROUP.setUserGroupMemberDefaultPassword(row.id, function (data) {
+                            if (data.rc === 'ok') {
+                                row.hasDefaultPassword = true;
+                                $userGroupMemberTable.bootstrapTable('updateRow', {
+                                    index: index,
+                                    row: row,
+                                    replace: true
+                                });
+                                $button.addClass('disabled');
+                            } else {
+                                MSG.displayInformation(data, data.cause, data.cause);
+                            }
+                        });
                     }
                 },
                 align : 'left',
                 valign : 'top',
                 formatter : function(value, row, index) {
-                    return $memberActionItemsTemplate.find('td').html();
+                    var $element = $memberPasswordResetTemplate.find('td').clone(true);
+                    if (row.hasDefaultPassword) {
+                        var $button = $element.children('.reset-password'),
+                            tooltipMsgKey = 'Blockly.Msg.USERGROUP_MEMBER_INITIAL_PASSWORD_TOOLTIP',
+                            tooltipMsg = Blockly.Msg[tooltipMsgKey] || 'The user did not change the initial password yet.';
+                        $button.addClass('disabled');
+                        $button.attr('lkey', tooltipMsgKey);
+                        $button.attr('title', tooltipMsg);
+                        $button.data('originalTitle', tooltipMsg);
+                        $button.tooltip({
+                            title: function() {
+                                debugger;
+                                return $button.data('originalTitle');
+                            },
+                            placement: 'right',
+                            container: 'body'
+                        });
+                    }
+                    return $memberActionItemsTemplate.find('td').html() + $element.html();
                 },
                 width : '117px',
             }, ]
@@ -430,10 +467,110 @@ define([ 'exports', 'log', 'message', 'comm', 'util', 'userGroup.model', 'guiSta
 
     function initUserGroupMemberEvents() {
         $(window).resize(function() {
-            $('#userGroupMemberTable').bootstrapTable('resetView', {
+            $userGroupMemberTable.bootstrapTable('resetView', {
                 height : UTIL.calcDataTableHeight()
             });
         });
+        
+        $userGroupMemberTable.closest('#userGroupMemberList').find('button[name="refresh"]').onWrap('click', function(evt) {
+            evt.preventDefault();
+            //TODO: Load userGroup data from Server
+        }, 'refreshed usergroup member view');
+        
+        $userGroupMemberTable.onWrap('check-all.bs.table', function($element, rows) {
+            $userGroupMemberTable.closest('#userGroupMemberList').find('.deleteSome').removeClass('disabled');
+            
+            var atLeastOneHasNotDefaultPassword = rows.reduce(function(noDefaultPasswordFound, row) {
+                    return noDefaultPasswordFound || !row.hasDefaultPassword;
+                }, false);
+            
+            if (atLeastOneHasNotDefaultPassword) {
+                $userGroupMemberTable.closest('#userGroupMemberList').find('.resetPasswords').removeClass('disabled');
+            }
+            
+            $userGroupMemberTable.find('.delete').addClass('disabled');
+            $userGroupMemberTable.find('.share').addClass('disabled');
+        }, 'check all usergroups');
+
+        $userGroupMemberTable.onWrap('check.bs.table', function($element, row) {
+            $userGroupMemberTable.closest('#userGroupMemberList').find('.deleteSome').removeClass('disabled');
+            if (!row.hasDefaultPassword) {
+                $userGroupMemberTable.closest('#userGroupMemberList').find('.resetPasswords').removeClass('disabled');
+            }
+            $userGroupMemberTable.find('.delete').addClass('disabled');
+            $userGroupMemberTable.find('.share').addClass('disabled');
+        }, 'check one usergroup');
+
+        $userGroupMemberTable.onWrap('uncheck-all.bs.table', function($element, rows) {
+            $userGroupMemberTable.closest('#userGroupMemberList').find('.deleteSome, .resetPasswords').addClass('disabled');
+            $userGroupMemberTable.find('.delete').removeClass('disabled');
+            $userGroupMemberTable.find('.share').removeClass('disabled');
+        }, 'uncheck all usergroups');
+
+        $userGroupMemberTable.onWrap('uncheck.bs.table', function($element, row) {
+            var selectedRows = $userGroupMemberTable.bootstrapTable('getSelections');
+            if (!selectedRows || selectedRows.length === 0) {
+                var atLeastOneHasNotDefaultPassword = rows.reduce(function(noDefaultPasswordFound, row) {
+                        return noDefaultPasswordFound || !row.hasDefaultPassword;
+                    }, false);
+                $userGroupMemberTable.closest('#userGroupMemberList').find('.deleteSome').addClass('disabled');
+                if (!atLeastOneHasNotDefaultPassword) {
+                    $userGroupMemberTable.closest('#userGroupMemberList').find('.resetPasswords').addClass('disabled');
+                }
+                $userGroupMemberTable.find('.delete').removeClass('disabled');
+                $userGroupMemberTable.find('.share').removeClass('disabled');
+            }
+        }, 'uncheck one usergroup');
+        
+        $userGroupMemberTable.closest('#userGroupMemberList').find('.deleteSome').onWrap('click', function() {
+            //TODO: Rework user deletion for group members
+            
+            var selectedRows = $userGroupTable.bootstrapTable('getSelections'),
+                $deleteAllButton = $userGroupTable.closest('#userGroupList').find('.deleteSome');
+            if (!selectedRows || selectedRows.length === 0 || $deleteAllButton.hasClass('disabled')) {
+                return;
+            }
+            
+            if (selectedRows.reduce(function(carry, element) {return carry + (element && element.members && element.members.length || 0);}, 0) > 0) {
+                MSG.displayInformation({}, '', 'ORA_GROUP_DELETE_ERROR_GROUP_HAS_MEMBERS');
+            } else {
+                
+                var errors = {},
+                    removedRows = [],
+                    callBackReceived = [];
+                for(var i = 0; i < selectedRows.length; i++) {
+                    USERGROUP.deleteUserGroup(selectedRows[i].name, function (data) {
+                        if (data.rc === 'ok') {
+                            removedRows.push(data.parameters.USERGROUP_NAME);
+                        } else {
+                            if (!errors[data.cause]) {
+                                errors[data.cause] = [];
+                            }
+                            errors[data.cause].push(data.parameters.USERGROUP_NAME);
+                        }
+                        //TODO: Work with Promises instead
+                        if (data.parameters.USERGROUP_NAME === selectedRows[selectedRows.length - 1].name) {
+                            setTimeout(function() {
+                                if (removedRows.length > 0) {
+                                    $userGroupTable.bootstrapTable('remove', {field: 'name', values: removedRows})
+                                }
+                                
+                                if (Object.keys(errors).length > 0) {
+                                    var errorMessage = '';
+                                    
+                                    for (var errorKey in errors) {
+                                        if (errors.hasOwnProperty(errorKey)) {
+                                            errorMessage += '<p>\"' + errors[errorKey].join('", "') + '":<br/>' + (Blockly.Msg[errorKey] || errorKey) + '</p>';
+                                        }
+                                    }
+                                    MSG.displayPopupMessage('', errorMessage, 'OK')
+                                }
+                            }, 500);
+                        }
+                    });
+                }
+            }
+        }, 'Bulk delete usergroup');
         
         $('#backUserGroupMemberList').click(function() {
             showPanel();

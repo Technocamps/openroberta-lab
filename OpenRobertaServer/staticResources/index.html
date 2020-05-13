@@ -514,6 +514,7 @@ limitations under the License.
 	                		class="btn typcn typcn-plus" 
 	                		lkey="Blockly.Msg.USERGROUP_CREATE"
 	                		rel="tooltip"
+	                		data-placement="left"
 	                		data-original-title="Create new user-group."></button>
                 </div>
             </div>
@@ -535,7 +536,7 @@ limitations under the License.
 	                		rel="tooltip"
 	                		data-original-title="Back to previous view."></button>
 	                <span>
-	                	<strong lkey="Blockly.Msg.DATATABLE_USERGROUP_NAME">GROUPNAME</strong>
+	                	<strong class="menuTab" lkey="Blockly.Msg.DATATABLE_USERGROUP_NAME">Name der Gruppe</strong>
 	                	<span id="userGroupMemberListHeader"></span>
                 	</span>
                 </div>
@@ -555,12 +556,26 @@ limitations under the License.
             <table id="userGroupMemberTable">
             	<tr class="reset-password-template">
             		<td>
-            			<a href="#" class="" lkey="Blockly.Msg.RESET_PASSWORD" rel="tooltip" data-translation-targets="data-original-title title" data-original-title="" title=""></a>
+            			<a href="#" class="reset-password typcn typcn-refresh" lkey="Blockly.Msg.RESET_PASSWORD" rel="tooltip" data-translation-targets="data-original-title title" data-original-title="" title=""></a>
             		</td>
             	</tr>
             	<tr class="action-items-template">
             		<td>
             			<a href="#" class="delete typcn typcn-delete" lkey="Blockly.Msg.MENU_DELETE_USER" data-translation-targets="data-original-title title" data-original-title="" title=""></a>
+            		</td>
+            	</tr>
+            	<tr class="action-items-header-template">
+            		<td>
+            			<a href="#" 
+            			   class="deleteSome typcn typcn-delete disabled" 
+            			   lkey="Blockly.Msg.PROGLIST_DELETE_ALL_TOOLTIP" 
+            			   data-original-title=""
+            			   title=""></a>
+            			<a href="#" 
+            			   class="resetPasswords typcn typcn-refresh disabled" 
+            			   lkey="Blockly.Msg.PROGLIST_DELETE_ALL_TOOLTIP" 
+            			   data-original-title=""
+            			   title=""></a>
             		</td>
             	</tr>
             </table>

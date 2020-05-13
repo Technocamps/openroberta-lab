@@ -1572,17 +1572,20 @@ div.galleryDescription, div.tutorialOverview {
 #progList table tbody tr.selected,
 #confList table tbody tr.selected,
 #relationsList table tbody tr.selected,
-#userGroupList table tbody tr.selected {
+#userGroupList table tbody tr.selected,
+#userGroupMemberList table tbody tr.selected {
     background-color: #BACC1E;
 }
 #progList .fixed-table-container tbody .selected td,
-#userGroupList .fixed-table-container tbody .selected td {
+#userGroupList .fixed-table-container tbody .selected td,
+#userGroupMemberList .fixed-table-container tbody .selected td {
     background-color: #BACC1E;
 }
 #progList table tbody tr:hover,
 #confList table tbody tr:hover,
 #relationsList table tbody tr:hover,
-#userGroupList table tbody tr:hover {
+#userGroupList table tbody tr:hover,
+#userGroupMemberList table tbody tr:hover {
     background-color: #BACC1E;
 }
 #progList .fixed-table-container tbody td:hover:not(a.showRelations) {

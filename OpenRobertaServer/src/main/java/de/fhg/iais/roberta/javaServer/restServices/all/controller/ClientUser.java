@@ -27,10 +27,10 @@ import de.fhg.iais.roberta.persistence.LostPasswordProcessor;
 import de.fhg.iais.roberta.persistence.PendingEmailConfirmationsProcessor;
 import de.fhg.iais.roberta.persistence.ProcessorStatus;
 import de.fhg.iais.roberta.persistence.UserProcessor;
-import de.fhg.iais.roberta.persistence.bo.UserGroup;
 import de.fhg.iais.roberta.persistence.bo.LostPassword;
 import de.fhg.iais.roberta.persistence.bo.PendingEmailConfirmations;
 import de.fhg.iais.roberta.persistence.bo.User;
+import de.fhg.iais.roberta.persistence.bo.UserGroup;
 import de.fhg.iais.roberta.persistence.util.DbSession;
 import de.fhg.iais.roberta.persistence.util.HttpSessionState;
 import de.fhg.iais.roberta.robotCommunication.RobotCommunicator;
@@ -66,7 +66,7 @@ public class ClientUser {
     @Path("/clear")
     public Response clear(JSONObject fullRequest) throws Exception {
         JSONObject response = new JSONObject();
-        HttpSessionState httpSessionState = UtilForREST.handleRequestInit(LOG, fullRequest);
+        HttpSessionState httpSessionState = UtilForREST.handleRequestInit(ClientUser.LOG, fullRequest);
         try {
             final int userId = httpSessionState.getUserId();
             String cmd = "clear";
@@ -92,7 +92,7 @@ public class ClientUser {
     @Path("/login")
     public Response login(@OraData DbSession dbSession, JSONObject fullRequest) throws Exception {
         JSONObject response = new JSONObject();
-        HttpSessionState httpSessionState = UtilForREST.handleRequestInit(LOG, fullRequest);
+        HttpSessionState httpSessionState = UtilForREST.handleRequestInit(ClientUser.LOG, fullRequest);
         try {
             JSONObject request = fullRequest.getJSONObject("data");
             String cmd = "login";
@@ -145,7 +145,7 @@ public class ClientUser {
     @Path("/getUser")
     public Response getUser(@OraData DbSession dbSession, JSONObject fullRequest) throws Exception {
         JSONObject response = new JSONObject();
-        HttpSessionState httpSessionState = UtilForREST.handleRequestInit(LOG, fullRequest);
+        HttpSessionState httpSessionState = UtilForREST.handleRequestInit(ClientUser.LOG, fullRequest);
         try {
             String cmd = "getUser";
             ClientUser.LOG.info("command is: " + cmd);
@@ -190,7 +190,7 @@ public class ClientUser {
     @Path("/logout")
     public Response logout(JSONObject fullRequest) throws Exception {
         JSONObject response = new JSONObject();
-        HttpSessionState httpSessionState = UtilForREST.handleRequestInit(LOG, fullRequest);
+        HttpSessionState httpSessionState = UtilForREST.handleRequestInit(ClientUser.LOG, fullRequest);
         try {
             final int userId = httpSessionState.getUserId();
             String cmd = "logout";
@@ -222,7 +222,7 @@ public class ClientUser {
     @Path("/createUser")
     public Response createUser(@OraData DbSession dbSession, JSONObject fullRequest) throws Exception {
         JSONObject response = new JSONObject();
-        HttpSessionState httpSessionState = UtilForREST.handleRequestInit(LOG, fullRequest);
+        HttpSessionState httpSessionState = UtilForREST.handleRequestInit(ClientUser.LOG, fullRequest);
         try {
             JSONObject request = fullRequest.getJSONObject("data");
             String cmd = "createUser";
@@ -244,7 +244,7 @@ public class ClientUser {
                 PendingEmailConfirmationsProcessor pendingConfirmationProcessor = new PendingEmailConfirmationsProcessor(dbSession, httpSessionState);
                 String lang = request.getString("language");
                 PendingEmailConfirmations confirmation = pendingConfirmationProcessor.createEmailConfirmation(account);
-                sendActivationMail(up, confirmation.getUrlPostfix(), account, email, lang, isYoungerThen14);
+                this.sendActivationMail(up, confirmation.getUrlPostfix(), account, email, lang, isYoungerThen14);
             }
             Statistics.info("UserCreate", "success", up.succeeded());
             UtilForREST.addResultInfo(response, up);
@@ -267,7 +267,7 @@ public class ClientUser {
     @Path("/updateUser")
     public Response updateUser(@OraData DbSession dbSession, JSONObject fullRequest) throws Exception {
         JSONObject response = new JSONObject();
-        HttpSessionState httpSessionState = UtilForREST.handleRequestInit(LOG, fullRequest);
+        HttpSessionState httpSessionState = UtilForREST.handleRequestInit(ClientUser.LOG, fullRequest);
         try {
             JSONObject request = fullRequest.getJSONObject("data");
             String cmd = "updateUser";
@@ -288,7 +288,7 @@ public class ClientUser {
             if ( this.isPublicServer && !oldEmail.equals(email) && up.succeeded() ) {
                 String lang = request.getString("language");
                 PendingEmailConfirmations confirmation = pendingConfirmationProcessor.createEmailConfirmation(account);
-                sendActivationMail(up, confirmation.getUrlPostfix(), account, email, lang, isYoungerThen14);
+                this.sendActivationMail(up, confirmation.getUrlPostfix(), account, email, lang, isYoungerThen14);
                 up.deactivateAccount(user.getId());
             }
             UtilForREST.addResultInfo(response, up);
@@ -311,7 +311,7 @@ public class ClientUser {
     @Path("/changePassword")
     public Response changePassword(@OraData DbSession dbSession, JSONObject fullRequest) throws Exception {
         JSONObject response = new JSONObject();
-        HttpSessionState httpSessionState = UtilForREST.handleRequestInit(LOG, fullRequest);
+        HttpSessionState httpSessionState = UtilForREST.handleRequestInit(ClientUser.LOG, fullRequest);
         try {
             JSONObject request = fullRequest.getJSONObject("data");
             String cmd = "changePassword";
@@ -343,7 +343,7 @@ public class ClientUser {
     @Path("/resetPassword")
     public Response resetPassword(@OraData DbSession dbSession, JSONObject fullRequest) throws Exception {
         JSONObject response = new JSONObject();
-        HttpSessionState httpSessionState = UtilForREST.handleRequestInit(LOG, fullRequest);
+        HttpSessionState httpSessionState = UtilForREST.handleRequestInit(ClientUser.LOG, fullRequest);
         try {
             JSONObject request = fullRequest.getJSONObject("data");
             String cmd = "resetPassword";
@@ -378,10 +378,60 @@ public class ClientUser {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Path("/hasUserGroupMemberDefaultPassword")
+    public Response hasUserGroupMemberDefaultPassword(@OraData DbSession dbSession, JSONObject fullRequest) throws Exception {
+        JSONObject response = new JSONObject();
+        HttpSessionState httpSessionState = UtilForREST.handleRequestInit(ClientUser.LOG, fullRequest);
+        try {
+            Map<String, String> responseParameters = new HashMap<>();
+            JSONObject request = fullRequest.getJSONObject("data");
+            String cmd = "hasUserGroupMemberDefaultPassword";
+            ClientUser.LOG.info("command is: " + cmd);
+            response.put("cmd", cmd);
+            UserProcessor up = new UserProcessor(dbSession, httpSessionState);
+
+            int userId = httpSessionState.getUserId();
+
+            if ( userId <= 0 ) {
+                up.setStatus(ProcessorStatus.FAILED, Key.USER_ERROR_NOT_LOGGED_IN, responseParameters);
+                UtilForREST.addResultInfo(response, up);
+                return UtilForREST.responseWithFrontendInfo(response, httpSessionState, this.brickCommunicator);
+            }
+
+            User user = up.getUser(httpSessionState.getUserId());
+
+            if ( user == null ) {
+                up.setStatus(ProcessorStatus.FAILED, Key.SERVER_ERROR, responseParameters);
+                UtilForREST.addResultInfo(response, up);
+                return UtilForREST.responseWithFrontendInfo(response, httpSessionState, this.brickCommunicator);
+            }
+
+            boolean isDefaultPasswordSet = user.isPasswordCorrect(user.getAccount());
+            up.setStatus(ProcessorStatus.SUCCEEDED, Key.USER_GROUP_MEMBER_PASSWORD_SUCCESS, responseParameters);
+
+            response.put("hasDefaultPassword", isDefaultPasswordSet);
+
+            UtilForREST.addResultInfo(response, up);
+        } catch ( Exception e ) {
+            //No rollBack, because we only read from the database
+            String errorTicketId = Util.getErrorTicketId();
+            ClientUser.LOG.error("Exception. Error ticket: " + errorTicketId, e);
+            UtilForREST.addErrorInfo(response, Key.SERVER_ERROR).append("parameters", errorTicketId);
+        } finally {
+            if ( dbSession != null ) {
+                dbSession.close();
+            }
+        }
+        return UtilForREST.responseWithFrontendInfo(response, httpSessionState, this.brickCommunicator);
+    }
+
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     @Path("/isResetPasswordLinkExpired")
     public Response isResetPasswordLinkExpired(@OraData DbSession dbSession, JSONObject fullRequest) throws Exception {
         JSONObject response = new JSONObject();
-        HttpSessionState httpSessionState = UtilForREST.handleRequestInit(LOG, fullRequest);
+        HttpSessionState httpSessionState = UtilForREST.handleRequestInit(ClientUser.LOG, fullRequest);
         try {
             Map<String, String> responseParameters = new HashMap<>();
             JSONObject request = fullRequest.getJSONObject("data");
@@ -422,7 +472,7 @@ public class ClientUser {
     @Path("/passwordRecovery")
     public Response passwordRecovery(@OraData DbSession dbSession, JSONObject fullRequest) throws Exception {
         JSONObject response = new JSONObject();
-        HttpSessionState httpSessionState = UtilForREST.handleRequestInit(LOG, fullRequest);
+        HttpSessionState httpSessionState = UtilForREST.handleRequestInit(ClientUser.LOG, fullRequest);
         try {
             Map<String, String> responseParameters = new HashMap<>();
             JSONObject request = fullRequest.getJSONObject("data");
@@ -471,7 +521,7 @@ public class ClientUser {
     @Path("/activateUser")
     public Response activateUser(@OraData DbSession dbSession, JSONObject fullRequest) throws Exception {
         JSONObject response = new JSONObject();
-        HttpSessionState httpSessionState = UtilForREST.handleRequestInit(LOG, fullRequest);
+        HttpSessionState httpSessionState = UtilForREST.handleRequestInit(ClientUser.LOG, fullRequest);
         try {
             JSONObject request = fullRequest.getJSONObject("data");
             String cmd = "activateUser";
@@ -510,7 +560,7 @@ public class ClientUser {
     @Path("/resendActivation")
     public Response resendActivation(@OraData DbSession dbSession, JSONObject fullRequest) throws Exception {
         JSONObject response = new JSONObject();
-        HttpSessionState httpSessionState = UtilForREST.handleRequestInit(LOG, fullRequest);
+        HttpSessionState httpSessionState = UtilForREST.handleRequestInit(ClientUser.LOG, fullRequest);
         try {
             JSONObject request = fullRequest.getJSONObject("data");
             String cmd = "resendActivation";
@@ -525,7 +575,7 @@ public class ClientUser {
             if ( this.isPublicServer && user != null && !user.getEmail().equals("") ) {
                 PendingEmailConfirmations confirmation = pendingConfirmationProcessor.createEmailConfirmation(account);
                 // TODO ask here again for the age
-                sendActivationMail(up, confirmation.getUrlPostfix(), account, user.getEmail(), lang, false);
+                this.sendActivationMail(up, confirmation.getUrlPostfix(), account, user.getEmail(), lang, false);
             }
             UtilForREST.addResultInfo(response, up);
         } catch ( Exception e ) {
@@ -547,7 +597,7 @@ public class ClientUser {
     @Path("/deleteUser")
     public Response deleteUser(@OraData DbSession dbSession, JSONObject fullRequest) throws Exception {
         JSONObject response = new JSONObject();
-        HttpSessionState httpSessionState = UtilForREST.handleRequestInit(LOG, fullRequest);
+        HttpSessionState httpSessionState = UtilForREST.handleRequestInit(ClientUser.LOG, fullRequest);
         try {
             JSONObject request = fullRequest.getJSONObject("data");
             String cmd = "deleteUser";
@@ -579,7 +629,7 @@ public class ClientUser {
     @Path("/getStatusText")
     public Response getStatusText(JSONObject fullRequest) throws Exception {
         JSONObject response = new JSONObject();
-        HttpSessionState httpSessionState = UtilForREST.handleRequestInit(LOG, fullRequest);
+        HttpSessionState httpSessionState = UtilForREST.handleRequestInit(ClientUser.LOG, fullRequest);
         try {
             String cmd = "getStatusText";
             ClientUser.LOG.info("command is: " + cmd);
@@ -587,11 +637,11 @@ public class ClientUser {
 
             Timestamp timestamp = new Timestamp(System.currentTimeMillis());
             Long current = timestamp.getTime() / 1000L;
-            if ( current > statusTextTimestamp ) {
-                statusText[0] = "";
-                statusText[1] = "";
+            if ( current > ClientUser.statusTextTimestamp ) {
+                ClientUser.statusText[0] = "";
+                ClientUser.statusText[1] = "";
             }
-            JSONArray statusTextJSON = new JSONArray(Arrays.asList(statusText));
+            JSONArray statusTextJSON = new JSONArray(Arrays.asList(ClientUser.statusText));
             response.put("statustext", statusTextJSON);
             response.put("rc", "ok");
             // Util.addResultInfo(response, up); // should not be necessary
@@ -609,7 +659,7 @@ public class ClientUser {
     @Path("/setStatusText")
     public Response setStatusText(JSONObject fullRequest) throws Exception {
         JSONObject response = new JSONObject();
-        HttpSessionState httpSessionState = UtilForREST.handleRequestInit(LOG, fullRequest);
+        HttpSessionState httpSessionState = UtilForREST.handleRequestInit(ClientUser.LOG, fullRequest);
         try {
             final int userId = httpSessionState.getUserId();
             JSONObject request = fullRequest.getJSONObject("data");
@@ -618,9 +668,9 @@ public class ClientUser {
             response.put("cmd", cmd);
 
             if ( userId == 1 ) {
-                statusText[0] = request.getString("english");
-                statusText[1] = request.getString("german");
-                statusTextTimestamp = request.getLong("timestamp");
+                ClientUser.statusText[0] = request.getString("english");
+                ClientUser.statusText[1] = request.getString("german");
+                ClientUser.statusTextTimestamp = request.getLong("timestamp");
                 response.put("rc", "ok");
             } else {
                 ClientUser.LOG.error("Invalid command: " + cmd);
