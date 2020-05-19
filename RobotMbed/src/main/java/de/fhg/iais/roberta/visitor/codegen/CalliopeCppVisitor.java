@@ -1,10 +1,10 @@
 package de.fhg.iais.roberta.visitor.codegen;
 
-import java.util.List;
+import com.google.common.collect.ClassToInstanceMap;
 
 import org.apache.commons.text.WordUtils;
 
-import com.google.common.collect.ClassToInstanceMap;
+import java.util.List;
 
 import de.fhg.iais.roberta.bean.IProjectBean;
 import de.fhg.iais.roberta.bean.UsedHardwareBean;
@@ -578,12 +578,24 @@ public final class CalliopeCppVisitor extends AbstractCppVisitor implements IMbe
         return null;
     }
 
+    // TODO better as map, all pins
+    private static String mapPinToCodeName(String pin) {
+        switch ( pin ) {
+            case "1":
+                return "P0";
+            case "C04":
+                return "P3";
+            default:
+                throw new DbcException("Pin mapping does not exist");
+        }
+    }
+
     @Override
     public Void visitPinWriteValueAction(PinWriteValueAction<Void> pinWriteValueSensor) {
         String userDefinedName = pinWriteValueSensor.getPort();
-        String port = this.robotConfiguration.getConfigurationComponent(userDefinedName).getInternalPortName();
+        String port = this.robotConfiguration.getConfigurationComponent(userDefinedName).getProperty("INPUT");
         String valueType = pinWriteValueSensor.getMode().equals(SC.DIGITAL) ? "DigitalValue(" : "AnalogValue(";
-        this.sb.append("_uBit.io.").append(port).append(".set").append(valueType);
+        this.sb.append("_uBit.io.").append(mapPinToCodeName(port)).append(".set").append(valueType);
         pinWriteValueSensor.getValue().accept(this);
         this.sb.append(");");
         return null;

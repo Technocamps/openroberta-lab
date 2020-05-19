@@ -36,6 +36,7 @@ import de.fhg.iais.roberta.persistence.dao.ConfigurationDao;
 import de.fhg.iais.roberta.persistence.util.DbSession;
 import de.fhg.iais.roberta.persistence.util.HttpSessionState;
 import de.fhg.iais.roberta.util.Key;
+import de.fhg.iais.roberta.util.Pair;
 import de.fhg.iais.roberta.util.ServerProperties;
 import de.fhg.iais.roberta.util.Statistics;
 import de.fhg.iais.roberta.util.Util;
@@ -172,12 +173,14 @@ public class ClientProgramController {
 
                 Program program = programProcessor.getProgram(programName, ownerName, robot, author);
                 if ( program != null ) {
-                    response.put("progXML", program.getProgramText());
-                    String configText =
-                        generateConfigurationIfNeeded(
-                            httpSessionState.getRobotFactory(),
-                            program.getProgramText(),
-                            programProcessor.getProgramsConfig(program));
+                    String programText = program.getProgramText();
+                    String configText = programProcessor.getProgramsConfig(program);
+                    Pair<String, String>
+                        progConfPair =
+                        generateConfigurationAndUpdatedProgramIfNeeded(httpSessionState.getRobotFactory(), programText, configText);
+                    programText = progConfPair.getFirst();
+                    configText = progConfPair.getSecond();
+                    response.put("progXML", programText);
                     response.put("configName", program.getConfigName()); // may be null, if an anonymous configuration is used
                     response.put("confXML", configText); // may be null, if the default configuration is used
                     response.put("lastChanged", program.getLastChanged().getTime());
@@ -350,11 +353,12 @@ public class ClientProgramController {
                 if ( robotType1.equals(robot) && robotType2.equals(robot) ) {
                     response.put("programName", programName);
                     String programText = JaxbHelper.blockSet2xml(jaxbImportExport.getProgram().getBlockSet());
-                    String configText =
-                        generateConfigurationIfNeeded(
-                            httpSessionState.getRobotFactory(),
-                            programText,
-                            JaxbHelper.blockSet2xml(jaxbImportExport.getConfig().getBlockSet()));
+                    String configText = JaxbHelper.blockSet2xml(jaxbImportExport.getConfig().getBlockSet());
+                    Pair<String, String>
+                        progConfPair =
+                        generateConfigurationAndUpdatedProgramIfNeeded(httpSessionState.getRobotFactory(), programText, configText);
+                    programText = progConfPair.getFirst();
+                    configText = progConfPair.getSecond();
                     response.put("progXML", programText);
                     response.put("confXML", configText);
                     UtilForREST.addSuccessInfo(response, Key.PROGRAM_IMPORT_SUCCESS);
@@ -694,13 +698,13 @@ public class ClientProgramController {
     }
 
     // Workaround for old robot programs which do not have a configuration yet
-    private static String generateConfigurationIfNeeded(IRobotFactory robotFactory, String programText, String configText) {
+    private static Pair<String, String> generateConfigurationAndUpdatedProgramIfNeeded(IRobotFactory robotFactory, String programText, String configText) {
         if ( robotFactory.hasWorkflow("generateconfiguration") ) {
             Project project = new Project.Builder().setFactory(robotFactory).setProgramXml(programText).setConfigurationXml(configText).build();
             ProjectService.executeWorkflow("generateconfiguration", project);
-            return project.getAnnotatedConfigurationAsXml();
+            return Pair.of(project.getAnnotatedProgramAsXml(), project.getAnnotatedConfigurationAsXml());
         } else {
-            return configText;
+            return Pair.of(programText, configText);
         }
     }
 }
