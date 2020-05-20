@@ -5,34 +5,10 @@
             <field name="INPUT">0</field>
         </block>
     </instance>
-    <instance x="1070" y="-1254">
-        <block type="robConf_analogin" id="7l?{cn;g_Tw#Y[6oum=A" intask="true">
-            <field name="NAME">P1_A</field>
-            <field name="INPUT">1</field>
-        </block>
-    </instance>
-    <instance x="1269" y="-1254">
-        <block type="robConf_key" id="Kbp:=x@gw@n.b~NH|1|e" intask="true">
-            <field name="NAME">A</field>
-            <field name="PIN1">A</field>
-        </block>
-    </instance>
     <instance x="891" y="-1190">
         <block type="robConf_digitalin" id="4}A!5hwg.)u!):UT7i:5" intask="true">
             <field name="NAME">P1_D</field>
             <field name="INPUT">1</field>
-        </block>
-    </instance>
-    <instance x="1070" y="-1190">
-        <block type="robConf_analogin" id="uTyM},fZeH4-V~t#]=Ls" intask="true">
-            <field name="NAME">P2_A</field>
-            <field name="INPUT">2</field>
-        </block>
-    </instance>
-    <instance x="1269" y="-1190">
-        <block type="robConf_key" id="~wk*JZQvB.fj=I`N#NWp" intask="true">
-            <field name="NAME">B</field>
-            <field name="PIN1">B</field>
         </block>
     </instance>
     <instance x="891" y="-1123">
@@ -41,22 +17,10 @@
             <field name="INPUT">2</field>
         </block>
     </instance>
-    <instance x="1070" y="-1123">
-        <block type="robConf_analogin" id="mJ)0*l2._dT=m2bHZI{_" intask="true">
-            <field name="NAME">A1_A</field>
-            <field name="INPUT">5</field>
-        </block>
-    </instance>
     <instance x="891" y="-1063">
         <block type="robConf_digitalin" id="gb}3l|%g})okb7G,K|z7" intask="true">
             <field name="NAME">P3_D</field>
             <field name="INPUT">3</field>
-        </block>
-    </instance>
-    <instance x="1070" y="-1063">
-        <block type="robConf_analogin" id="ErNqNhj+,:./7JVk6_Za" intask="true">
-            <field name="NAME">C04_A</field>
-            <field name="INPUT">C04</field>
         </block>
     </instance>
     <instance x="891" y="-997">
@@ -65,22 +29,10 @@
             <field name="INPUT">4</field>
         </block>
     </instance>
-    <instance x="1070" y="-997">
-        <block type="robConf_analogin" id="q/[/j/T!pD`}brZ5)M``" intask="true">
-            <field name="NAME">C05_A</field>
-            <field name="INPUT">C05</field>
-        </block>
-    </instance>
     <instance x="891" y="-929">
         <block type="robConf_digitalin" id="OAiE0!~Nv?rU)evSi,j}" intask="true">
             <field name="NAME">A1_D</field>
             <field name="INPUT">5</field>
-        </block>
-    </instance>
-    <instance x="1070" y="-929">
-        <block type="robConf_analogin" id="bUHR0h-S*fCM%]SJ?yXP" intask="true">
-            <field name="NAME">C06_A</field>
-            <field name="INPUT">C06</field>
         </block>
     </instance>
     <instance x="891" y="-867">
@@ -89,22 +41,10 @@
             <field name="INPUT">C04</field>
         </block>
     </instance>
-    <instance x="1070" y="-867">
-        <block type="robConf_analogin" id="hBtJ3wmT=/+ydi,^9g@z" intask="true">
-            <field name="NAME">C16_A</field>
-            <field name="INPUT">C16</field>
-        </block>
-    </instance>
     <instance x="891" y="-800">
         <block type="robConf_digitalin" id="`5w@8,@Vc`{rs*CFL!.=" intask="true">
             <field name="NAME">C05_D</field>
             <field name="INPUT">C05</field>
-        </block>
-    </instance>
-    <instance x="1070" y="-800">
-        <block type="robConf_analogin" id="5B^.p-:JZ68TP7B:AHF6" intask="true">
-            <field name="NAME">C17_A</field>
-            <field name="INPUT">C17</field>
         </block>
     </instance>
     <instance x="891" y="-738">
@@ -171,6 +111,90 @@
         <block type="robConf_digitalin" id="_f8/X1SggkAc]!t/e/S6" intask="true">
             <field name="NAME">C19_D</field>
             <field name="INPUT">C19</field>
+        </block>
+    </instance>
+    <instance x="1070" y="-1254">
+        <block type="robConf_analogin" id="7l?{cn;g_Tw#Y[6oum=A" intask="true">
+            <field name="NAME">P1_A</field>
+            <field name="INPUT">1</field>
+        </block>
+    </instance>
+    <instance x="1070" y="-1190">
+        <block type="robConf_analogin" id="uTyM},fZeH4-V~t#]=Ls" intask="true">
+            <field name="NAME">P2_A</field>
+            <field name="INPUT">2</field>
+        </block>
+    </instance>
+    <instance x="1070" y="-1123">
+        <block type="robConf_analogin" id="mJ)0*l2._dT=m2bHZI{_" intask="true">
+            <field name="NAME">A1_A</field>
+            <field name="INPUT">5</field>
+        </block>
+    </instance>
+    <instance x="1070" y="-1063">
+        <block type="robConf_analogin" id="ErNqNhj+,:./7JVk6_Za" intask="true">
+            <field name="NAME">C04_A</field>
+            <field name="INPUT">C04</field>
+        </block>
+    </instance>
+    <instance x="1070" y="-997">
+        <block type="robConf_analogin" id="q/[/j/T!pD`}brZ5)M``" intask="true">
+            <field name="NAME">C05_A</field>
+            <field name="INPUT">C05</field>
+        </block>
+    </instance>
+    <instance x="1070" y="-929">
+        <block type="robConf_analogin" id="bUHR0h-S*fCM%]SJ?yXP" intask="true">
+            <field name="NAME">C06_A</field>
+            <field name="INPUT">C06</field>
+        </block>
+    </instance>
+    <instance x="1070" y="-867">
+        <block type="robConf_analogin" id="hBtJ3wmT=/+ydi,^9g@z" intask="true">
+            <field name="NAME">C16_A</field>
+            <field name="INPUT">C16</field>
+        </block>
+    </instance>
+    <instance x="1070" y="-800">
+        <block type="robConf_analogin" id="5B^.p-:JZ68TP7B:AHF6" intask="true">
+            <field name="NAME">C17_A</field>
+            <field name="INPUT">C17</field>
+        </block>
+    </instance>
+    <instance x="1269" y="-1254">
+        <block type="robConf_key" id="Kbp:=x@gw@n.b~NH|1|e" intask="true">
+            <field name="NAME">A</field>
+            <field name="PIN1">A</field>
+        </block>
+    </instance>
+    <instance x="1269" y="-1190">
+        <block type="robConf_key" id="~wk*JZQvB.fj=I`N#NWp" intask="true">
+            <field name="NAME">B</field>
+            <field name="PIN1">B</field>
+        </block>
+    </instance>
+    <instance x="1400" y="-1254">
+        <block intask="true" id="9Ktt(7_4+XmKC0]5Zha?" type="robConf_light">
+            <field name="NAME">L</field>
+            <field name="PIN1">LED_BUILTIN</field>
+        </block>
+    </instance>
+    <instance x="1400" y="-1190">
+        <block intask="true" id="O%Oi0Tq`hGEvrgHGPYY=" type="robConf_compass">
+            <field name="NAME">C</field>
+            <field name="PIN1">LED_BUILTIN</field>
+        </block>
+    </instance>
+    <instance x="1400" y="-1123">
+        <block intask="true" id="e:4V0FcDx%9,.7xO,Ns@" type="robConf_sound">
+            <field name="NAME">M</field>
+            <field name="PIN1">LED_BUILTIN</field>
+        </block>
+    </instance>
+    <instance x="1400" y="-1063">
+        <block intask="true" id="0y].dnS)P)~Jjzeu3/0C" type="robConf_temperature">
+            <field name="NAME">T2</field>
+            <field name="PIN1">LED_BUILTIN</field>
         </block>
     </instance>
 </block_set>
