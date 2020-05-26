@@ -1,12 +1,16 @@
 package de.fhg.iais.roberta.visitor.collect;
+
 import de.fhg.iais.roberta.bean.NewUsedHardwareBean;
 import de.fhg.iais.roberta.components.UsedConfigurationComponent;
 import de.fhg.iais.roberta.syntax.action.generic.PinWriteValueAction;
+import de.fhg.iais.roberta.syntax.action.light.LightAction;
+import de.fhg.iais.roberta.syntax.action.light.LightStatusAction;
 import de.fhg.iais.roberta.syntax.sensor.generic.CompassSensor;
 import de.fhg.iais.roberta.syntax.sensor.generic.KeysSensor;
 import de.fhg.iais.roberta.syntax.sensor.generic.LightSensor;
 import de.fhg.iais.roberta.syntax.sensor.generic.SoundSensor;
 import de.fhg.iais.roberta.syntax.sensor.generic.TemperatureSensor;
+import de.fhg.iais.roberta.syntax.sensor.generic.UltrasonicSensor;
 
 public class AbstractNewUsedHardwareCollectorVisitor implements ICollectorVisitor {
 
@@ -50,5 +54,23 @@ public class AbstractNewUsedHardwareCollectorVisitor implements ICollectorVisito
     public Void visitTemperatureSensor(TemperatureSensor<Void> temperatureSensor) {
         this.builder.addUsedConfigurationComponent(new UsedConfigurationComponent(temperatureSensor.getPort(), temperatureSensor.getKind(), temperatureSensor.getMode()));
         return ICollectorVisitor.super.visitTemperatureSensor(temperatureSensor);
+    }
+
+    @Override
+    public Void visitUltrasonicSensor(UltrasonicSensor<Void> ultrasonicSensor) {
+        this.builder.addUsedConfigurationComponent(new UsedConfigurationComponent(ultrasonicSensor.getPort(), ultrasonicSensor.getKind(), ultrasonicSensor.getMode()));
+        return ICollectorVisitor.super.visitUltrasonicSensor(ultrasonicSensor);
+    }
+
+    @Override
+    public Void visitLightAction(LightAction<Void> lightAction) {
+        this.builder.addUsedConfigurationComponent(new UsedConfigurationComponent(lightAction.getPort(), lightAction.getKind(), lightAction.getMode().toString()));
+        return ICollectorVisitor.super.visitLightAction(lightAction);
+    }
+
+    @Override
+    public Void visitLightStatusAction(LightStatusAction<Void> lightStatusAction) {
+        this.builder.addUsedConfigurationComponent(new UsedConfigurationComponent(lightStatusAction.getPort(), lightStatusAction.getKind(), lightStatusAction.getStatus().toString()));
+        return ICollectorVisitor.super.visitLightStatusAction(lightStatusAction);
     }
 }
