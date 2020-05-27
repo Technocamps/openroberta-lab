@@ -11,6 +11,7 @@ import de.fhg.iais.roberta.syntax.BlocklyComment;
 import de.fhg.iais.roberta.syntax.BlocklyConstants;
 import de.fhg.iais.roberta.syntax.Phrase;
 import de.fhg.iais.roberta.syntax.action.Action;
+import de.fhg.iais.roberta.syntax.action.IActionBuilder;
 import de.fhg.iais.roberta.syntax.lang.expr.ColorConst;
 import de.fhg.iais.roberta.syntax.lang.expr.Expr;
 import de.fhg.iais.roberta.transformer.AbstractJaxb2Ast;
@@ -32,6 +33,35 @@ import de.fhg.iais.roberta.visitor.hardware.IMbedVisitor;
 public class LedOnAction<V> extends Action<V> {
     private final Expr<V> ledColor;
     private final String port;
+
+    public static class Builder<V> implements IActionBuilder<LedOnAction<V>> {
+        private Expr<V> ledColor = null;
+        private String port = null;
+        private BlocklyBlockProperties properties = null;
+        private BlocklyComment comment = null;
+
+        public Builder<V> setOriginal(LedOnAction<V> original) {
+            this.ledColor = original.ledColor;
+            this.port = original.port;
+            this.properties = original.getProperty();
+            this.comment = original.getComment();
+            return this;
+        }
+
+        public Builder<V> setPort(String port) {
+            this.port = port;
+            return this;
+        }
+
+        public LedOnAction<V> build() {
+            Assert.notNull(this.ledColor);
+            Assert.notNull(this.port);
+            Assert.notNull(this.properties);
+            // comment can be null
+
+            return new LedOnAction<>(this.port, this.ledColor, this.properties, this.comment);
+        }
+    }
 
     private LedOnAction(String port, Expr<V> ledColor, BlocklyBlockProperties properties, BlocklyComment comment) {
         super(BlockTypeContainer.getByName("LED_ON_ACTION"), properties, comment);

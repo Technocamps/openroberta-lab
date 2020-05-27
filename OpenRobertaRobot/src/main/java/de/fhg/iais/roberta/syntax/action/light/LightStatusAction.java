@@ -11,6 +11,7 @@ import de.fhg.iais.roberta.syntax.BlocklyComment;
 import de.fhg.iais.roberta.syntax.BlocklyConstants;
 import de.fhg.iais.roberta.syntax.Phrase;
 import de.fhg.iais.roberta.syntax.action.Action;
+import de.fhg.iais.roberta.syntax.action.IActionBuilder;
 import de.fhg.iais.roberta.transformer.AbstractJaxb2Ast;
 import de.fhg.iais.roberta.transformer.Ast2JaxbHelper;
 import de.fhg.iais.roberta.util.dbc.Assert;
@@ -26,6 +27,35 @@ import de.fhg.iais.roberta.visitor.hardware.actor.ILightVisitor;
 public class LightStatusAction<V> extends Action<V> {
     private final Status status;
     private final String port;
+
+    public static class Builder<V> implements IActionBuilder<LightStatusAction<V>> {
+        private String port = null;
+        private Status status = null;
+        private BlocklyBlockProperties properties = null;
+        private BlocklyComment comment = null;
+
+        public Builder<V> setOriginal(LightStatusAction<V> original) {
+            this.port = original.port;
+            this.status = original.status;
+            this.properties = original.getProperty();
+            this.comment = original.getComment();
+            return this;
+        }
+
+        public Builder<V> setPort(String port) {
+            this.port = port;
+            return this;
+        }
+
+        public LightStatusAction<V> build() {
+            Assert.notNull(this.status);
+            Assert.notNull(this.port);
+            Assert.notNull(this.properties);
+            // comment can be null
+
+            return new LightStatusAction<>(this.port, this.status, this.properties, this.comment);
+        }
+    }
 
     private LightStatusAction(String port, Status status, BlocklyBlockProperties properties, BlocklyComment comment) {
         super(BlockTypeContainer.getByName("LIGHT_STATUS_ACTION"), properties, comment);

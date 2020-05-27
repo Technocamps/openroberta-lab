@@ -5,9 +5,11 @@ import de.fhg.iais.roberta.syntax.BlockTypeContainer;
 import de.fhg.iais.roberta.syntax.BlocklyBlockProperties;
 import de.fhg.iais.roberta.syntax.BlocklyComment;
 import de.fhg.iais.roberta.syntax.Phrase;
+import de.fhg.iais.roberta.syntax.action.IActionBuilder;
 import de.fhg.iais.roberta.syntax.sensor.ExternalSensor;
 import de.fhg.iais.roberta.syntax.sensor.SensorMetaDataBean;
 import de.fhg.iais.roberta.transformer.AbstractJaxb2Ast;
+import de.fhg.iais.roberta.util.dbc.Assert;
 import de.fhg.iais.roberta.visitor.IVisitor;
 import de.fhg.iais.roberta.visitor.hardware.sensor.ISensorVisitor;
 
@@ -22,6 +24,41 @@ import de.fhg.iais.roberta.visitor.hardware.sensor.ISensorVisitor;
  * To create an instance from this class use the method {@link #make(UltrasonicSensorMode, SensorPort, BlocklyBlockProperties, BlocklyComment)}.<br>
  */
 public class UltrasonicSensor<V> extends ExternalSensor<V> {
+
+    public static class Builder<V> implements IActionBuilder<UltrasonicSensor<V>> {
+        private String port = null;
+        private String mode = null;
+        private String slot = null;
+        private boolean isPortInMutation = false;
+        private BlocklyBlockProperties properties = null;
+        private BlocklyComment comment = null;
+
+        public Builder<V> setOriginal(UltrasonicSensor<V> original) {
+            this.port = original.getPort();
+            this.mode = original.getMode();
+            this.slot = original.getSlot();
+            this.isPortInMutation = true; // TODO
+            this.properties = original.getProperty();
+            this.comment = original.getComment();
+            return this;
+        }
+
+        public Builder<V> setPort(String port) {
+            this.port = port;
+            return this;
+        }
+
+        public UltrasonicSensor<V> build() {
+            Assert.notNull(this.port);
+            Assert.notNull(this.mode);
+            Assert.notNull(this.slot);
+            Assert.notNull(this.properties);
+            // comment can be null
+
+            return new UltrasonicSensor<V>(new SensorMetaDataBean(this.port, this.mode, this.slot, this.isPortInMutation), this.properties, this.comment);
+        }
+    }
+
     private UltrasonicSensor(SensorMetaDataBean sensorMetaDataBean, BlocklyBlockProperties properties, BlocklyComment comment) {
         super(sensorMetaDataBean, BlockTypeContainer.getByName("ULTRASONIC_SENSING"), properties, comment);
         setReadOnly();

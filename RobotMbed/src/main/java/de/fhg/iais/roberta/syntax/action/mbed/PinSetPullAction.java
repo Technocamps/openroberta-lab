@@ -11,6 +11,7 @@ import de.fhg.iais.roberta.syntax.BlocklyComment;
 import de.fhg.iais.roberta.syntax.BlocklyConstants;
 import de.fhg.iais.roberta.syntax.Phrase;
 import de.fhg.iais.roberta.syntax.action.Action;
+import de.fhg.iais.roberta.syntax.action.IActionBuilder;
 import de.fhg.iais.roberta.transformer.AbstractJaxb2Ast;
 import de.fhg.iais.roberta.transformer.Ast2JaxbHelper;
 import de.fhg.iais.roberta.util.dbc.Assert;
@@ -27,6 +28,35 @@ import de.fhg.iais.roberta.visitor.hardware.IMbedVisitor;
 public class PinSetPullAction<V> extends Action<V> {
     private final String pinPull;
     private final String port;
+
+    public static class Builder<V> implements IActionBuilder<PinSetPullAction<V>> {
+        private String pinPull = null;
+        private String port = null;
+        private BlocklyBlockProperties properties = null;
+        private BlocklyComment comment = null;
+
+        public Builder<V> setOriginal(PinSetPullAction<V> original) {
+            this.pinPull = original.pinPull;
+            this.port = original.port;
+            this.properties = original.getProperty();
+            this.comment = original.getComment();
+            return this;
+        }
+
+        public Builder<V> setPort(String port) {
+            this.port = port;
+            return this;
+        }
+
+        public PinSetPullAction<V> build() {
+            Assert.notNull(this.pinPull);
+            Assert.notNull(this.port);
+            Assert.notNull(this.properties);
+            // comment can be null
+
+            return new PinSetPullAction<>(this.pinPull, this.port, this.properties, this.comment);
+        }
+    }
 
     private PinSetPullAction(String pinPull, String port, BlocklyBlockProperties properties, BlocklyComment comment) {
         super(BlockTypeContainer.getByName("PIN_SET_PULL"), properties, comment);

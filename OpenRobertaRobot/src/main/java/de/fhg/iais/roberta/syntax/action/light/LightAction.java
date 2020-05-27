@@ -15,6 +15,7 @@ import de.fhg.iais.roberta.syntax.BlocklyComment;
 import de.fhg.iais.roberta.syntax.BlocklyConstants;
 import de.fhg.iais.roberta.syntax.Phrase;
 import de.fhg.iais.roberta.syntax.action.Action;
+import de.fhg.iais.roberta.syntax.action.IActionBuilder;
 import de.fhg.iais.roberta.syntax.lang.expr.Expr;
 import de.fhg.iais.roberta.transformer.AbstractJaxb2Ast;
 import de.fhg.iais.roberta.transformer.Ast2JaxbHelper;
@@ -32,6 +33,41 @@ public class LightAction<V> extends Action<V> {
     private final String port;
     private static boolean isActor;
     private static boolean isBlink;
+
+    public static class Builder<V> implements IActionBuilder<LightAction<V>> {
+        private String port = null;
+        private IBrickLedColor color = null;
+        private ILightMode mode = null;
+        private Expr<V> rgbLedColor = null;
+        private BlocklyBlockProperties properties = null;
+        private BlocklyComment comment = null;
+
+        public Builder<V> setOriginal(LightAction<V> original) {
+            this.port = original.port;
+            this.color = original.color;
+            this.mode = original.mode;
+            this.rgbLedColor = original.rgbLedColor;
+            this.properties = original.getProperty();
+            this.comment = original.getComment();
+            return this;
+        }
+
+        public Builder<V> setPort(String port) {
+            this.port = port;
+            return this;
+        }
+
+        public LightAction<V> build() {
+            Assert.notNull(this.port);
+            Assert.notNull(this.color);
+            Assert.notNull(this.mode);
+            Assert.notNull(this.rgbLedColor);
+            Assert.notNull(this.properties);
+            // comment can be null
+
+            return new LightAction<>(this.port, this.color, this.mode, this.rgbLedColor, this.properties, this.comment);
+        }
+    }
 
     private LightAction(String port, IBrickLedColor color, ILightMode mode, Expr<V> rgbLedColor, BlocklyBlockProperties properties, BlocklyComment comment) {
         super(BlockTypeContainer.getByName("LIGHT_ACTION"), properties, comment);

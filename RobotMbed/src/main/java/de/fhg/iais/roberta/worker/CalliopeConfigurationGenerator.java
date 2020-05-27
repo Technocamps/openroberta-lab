@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -14,16 +13,11 @@ import de.fhg.iais.roberta.components.ConfigurationComponent;
 import de.fhg.iais.roberta.components.Project;
 import de.fhg.iais.roberta.components.UsedConfigurationComponent;
 import de.fhg.iais.roberta.syntax.Phrase;
-import de.fhg.iais.roberta.syntax.action.generic.PinWriteValueAction;
-import de.fhg.iais.roberta.syntax.action.light.LightAction;
-import de.fhg.iais.roberta.syntax.action.light.LightStatusAction;
-import de.fhg.iais.roberta.syntax.action.mbed.LedOnAction;
-import de.fhg.iais.roberta.syntax.action.mbed.PinSetPullAction;
-import de.fhg.iais.roberta.syntax.sensor.SensorMetaDataBean;
-import de.fhg.iais.roberta.syntax.sensor.generic.UltrasonicSensor;
 import de.fhg.iais.roberta.util.Pair;
 import de.fhg.iais.roberta.util.dbc.Assert;
 import de.fhg.iais.roberta.util.dbc.DbcException;
+import de.fhg.iais.roberta.visitor.collect.MbedReplaceVisitor;
+import de.fhg.iais.roberta.visitor.collect.ReplacementMap;
 
 public class CalliopeConfigurationGenerator implements IWorker {
 
@@ -97,6 +91,7 @@ public class CalliopeConfigurationGenerator implements IWorker {
         if ( project.isDefaultConfiguration() ) {
             NewUsedHardwareBean usedHardwareBean = project.getWorkerResult(NewUsedHardwareBean.class);
 
+            ReplacementMap map = new ReplacementMap();
             Map<String, ConfigurationComponent> components = new HashMap<>();
             for ( UsedConfigurationComponent usedConfComp : usedHardwareBean.getUsedConfigurationComponents() ) {
                 String confType = PROG_BLOCK_TO_CONF_BLOCK_TYPE_MAPPING.get(Pair.of(usedConfComp.getType().getName(), usedConfComp.getMode()));
@@ -107,8 +102,13 @@ public class CalliopeConfigurationGenerator implements IWorker {
 
                 components.put(defaultComponent.getUserDefinedPortName(), defaultComponent);
 
-                replacePortNames(project.getProgramAst().getTree(), usedConfComp, defaultComponent.getUserDefinedPortName());
+                map.addReplacement(usedConfComp, "port", defaultComponent.getUserDefinedPortName());
             }
+            List<List<Phrase<Void>>> lists = recreateAst(project.getProgramAst().getTree(), map);
+
+            // TODO this replaces the old phrases with the new ones -> create new programAST or replace or smth?
+            project.getProgramAst().getTree().clear();
+            project.getProgramAst().getTree().addAll(lists);
 
             ConfigurationAst.Builder builder = new ConfigurationAst.Builder();
             builder.addComponents(new ArrayList<>(components.values()));
@@ -156,94 +156,26 @@ public class CalliopeConfigurationGenerator implements IWorker {
         }
     }
 
-    // this replaces the port names of the PIN_WRITE_VALUE blocks with the newly generated ones
-    // TODO rework? this is pretty ugly
-    private static void replacePortNames(List<List<Phrase<Void>>> tree, UsedConfigurationComponent usedConfComp, String newPortName) {
-        for ( List<Phrase<Void>> phrases : tree ) {
-            ListIterator<Phrase<Void>> iterator = phrases.listIterator();
-            while (iterator.hasNext()) {
-                Phrase<Void> phrase = iterator.next();
-                replacePhrase(phrase, iterator, usedConfComp, newPortName);
-            }
-        }
-    }
+    private static List<List<Phrase<Void>>> recreateAst(List<List<Phrase<Void>>> tree, ReplacementMap map) {
+        MbedReplaceVisitor mbedReplaceVisitor = new MbedReplaceVisitor(map);
 
-    private static void replacePhrase(Phrase<Void> phrase, ListIterator<Phrase<Void>> iterator, UsedConfigurationComponent usedConfComp, String newPortName) {
-        if ( phrase instanceof PinWriteValueAction ) {
-            PinWriteValueAction<Void> action = (PinWriteValueAction<Void>) phrase;
-            if ( action.getPort().equals(usedConfComp.getPort()) && action.getMode().equals(usedConfComp.getMode()) ) {
-                iterator
-                    .set(
-                        PinWriteValueAction
-                            .make(
-                                action.getMode(),
-                                newPortName,
-                                action.getValue(),
-                                false,
-                                action.getProperty(),
-                                action.getComment()));
+        // TODO expressions!!
+//        is change needed?
+//        modify funktion -> functionalinterface mit void -> void modify with Builder object
+
+        List<List<Phrase<Void>>> newTree = new ArrayList<>(tree.size());
+        for ( List<Phrase<Void>> phrases : tree ) {
+            List<Phrase<Void>> newPhrases = new ArrayList<>(phrases.size());
+            for ( Phrase<Void> phrase : phrases ) {
+                phrase.accept(mbedReplaceVisitor);
+                if ( mbedReplaceVisitor.wasPhraseReplaced()) {
+                    newPhrases.add(mbedReplaceVisitor.popLastReplacedPhrase());
+                } else {
+                    newPhrases.add(phrase);
+                }
             }
-        } else if ( phrase instanceof PinSetPullAction ) {
-            PinSetPullAction<Void> action = (PinSetPullAction<Void>) phrase;
-            if ( action.getPort().equals(usedConfComp.getPort()) && action.getMode().equals(usedConfComp.getMode()) ) {
-                iterator
-                    .set(
-                        PinSetPullAction
-                            .make(
-                                action.getMode(),
-                                newPortName,
-                                action.getProperty(),
-                                action.getComment()));
-            }
-        } else if ( phrase instanceof LedOnAction ) {
-            LedOnAction<Void> action = (LedOnAction<Void>) phrase;
-            if ( action.getPort().equals(usedConfComp.getPort()) ) {
-                iterator
-                    .set(
-                        LedOnAction
-                            .make(
-                                newPortName,
-                                action.getLedColor(),
-                                action.getProperty(),
-                                action.getComment()));
-            }
-        } else if ( phrase instanceof UltrasonicSensor ) {
-            UltrasonicSensor<Void> action = (UltrasonicSensor<Void>) phrase;
-            if ( action.getPort().equals(usedConfComp.getPort()) && action.getMode().equals(usedConfComp.getMode()) ) {
-                iterator
-                    .set(
-                        UltrasonicSensor
-                            .make(
-                                new SensorMetaDataBean(newPortName, action.getMode(), action.getSlot(), false),
-                                action.getProperty(),
-                                action.getComment()));
-            }
-        } else if ( phrase instanceof LightAction ) {
-            LightAction<Void> action = (LightAction<Void>) phrase;
-            if ( action.getPort().equals(usedConfComp.getPort()) && action.getMode().toString().equals(usedConfComp.getMode()) ) {
-                iterator
-                    .set(
-                        LightAction
-                            .make(
-                                newPortName,
-                                action.getColor(),
-                                action.getMode(),
-                                action.getRgbLedColor(),
-                                action.getProperty(),
-                                action.getComment()));
-            }
-        } else if ( phrase instanceof LightStatusAction ) {
-            LightStatusAction<Void> action = (LightStatusAction<Void>) phrase;
-            if ( action.getPort().equals(usedConfComp.getPort()) && action.getStatus().toString().equals(usedConfComp.getMode()) ) {
-                iterator
-                    .set(
-                        LightStatusAction
-                            .make(
-                                newPortName,
-                                action.getStatus(),
-                                action.getProperty(),
-                                action.getComment()));
-            }
+            newTree.add(newPhrases);
         }
+        return newTree;
     }
 }

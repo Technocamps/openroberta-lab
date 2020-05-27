@@ -13,6 +13,7 @@ import de.fhg.iais.roberta.syntax.BlocklyComment;
 import de.fhg.iais.roberta.syntax.BlocklyConstants;
 import de.fhg.iais.roberta.syntax.Phrase;
 import de.fhg.iais.roberta.syntax.action.Action;
+import de.fhg.iais.roberta.syntax.action.IActionBuilder;
 import de.fhg.iais.roberta.syntax.lang.expr.Expr;
 import de.fhg.iais.roberta.transformer.AbstractJaxb2Ast;
 import de.fhg.iais.roberta.transformer.Ast2JaxbHelper;
@@ -34,6 +35,40 @@ public class PinWriteValueAction<V> extends Action<V> {
     private final String port;
     private final Expr<V> value;
     private final boolean actorPortAndMode; // true: arduino (uses actor port and mode); if false: calliope (uses pin and valueType :-)
+
+    public static class Builder<V> implements IActionBuilder<PinWriteValueAction<V>> {
+        private String pinValue = null;
+        private String port = null;
+        private Expr<V> value = null;
+        private boolean actorPortAndMode = false;
+        private BlocklyBlockProperties properties = null;
+        private BlocklyComment comment = null;
+
+        public Builder<V> setOriginal(PinWriteValueAction<V> original) {
+            this.pinValue = original.pinValue;
+            this.port = original.port;
+            this.value = original.value;
+            this.actorPortAndMode = original.actorPortAndMode;
+            this.properties = original.getProperty();
+            this.comment = original.getComment();
+            return this;
+        }
+
+        public Builder<V> setPort(String port) {
+            this.port = port;
+            return this;
+        }
+
+        public PinWriteValueAction<V> build() {
+            Assert.notNull(this.pinValue);
+            Assert.notNull(this.port);
+            Assert.notNull(this.value);
+            Assert.notNull(this.properties);
+            // comment can be null
+
+            return new PinWriteValueAction<>(this.pinValue, this.port, this.value, this.actorPortAndMode, this.properties, this.comment);
+        }
+    }
 
     private PinWriteValueAction(
         String pinValue,
